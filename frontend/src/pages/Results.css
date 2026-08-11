@@ -1,0 +1,18 @@
+.results-page {
+  padding-top: 100px;
+  padding-bottom: 5rem;
+}
+
+.results-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.results-header h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.tab-content {
+  min-height: 500px;
+}

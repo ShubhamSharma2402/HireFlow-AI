@@ -1,0 +1,49 @@
+.qa-section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.qa-card {
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.qa-card.open {
+  border-color: var(--purple-light);
+}
+
+.qa-question {
+  transition: background 0.3s;
+}
+
+.qa-question:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.qa-question-text {
+  color: var(--text-main);
+}
+
+.qa-answer {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.qa-answer-text {
+  color: var(--text-main);
+}
+
+.tips-badge {
+  border-left: 4px solid var(--cyan);
+}
+
+.practice-area textarea {
+  min-height: 150px;
+}
+
+.font-bold { font-weight: 700; }
+.text-lg { font-size: 1.125rem; }
+.text-sm { font-size: 0.875rem; }
+.text-xs { font-size: 0.75rem; }
+.border-t { border-top-width: 1px; }
+.border-glass { border-color: var(--border-glass); }
+.bg-card { background-color: rgba(255, 255, 255, 0.02); }

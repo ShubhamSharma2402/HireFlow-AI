@@ -1,0 +1,98 @@
+.agent-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 10, 15, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.agent-modal {
+  width: 100%;
+  max-width: 500px;
+  padding: 3rem;
+  position: relative;
+}
+
+.cancel-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.cancel-btn:hover {
+  color: var(--red);
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+.progress-container {
+  width: 100%;
+  height: 6px;
+  background: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--purple), var(--cyan));
+  transition: width 0.5s ease;
+}
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.agent-step {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.agent-step.active {
+  color: var(--text-main);
+  font-weight: 600;
+  transform: scale(1.02);
+}
+
+.agent-step.completed {
+  color: var(--green);
+}
+
+.step-indicator {
+  width: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: var(--text-muted);
+  border-radius: 50%;
+}
+
+.active .dot {
+  background: var(--cyan);
+  box-shadow: 0 0 10px var(--cyan);
+  animation: pulse 1s infinite;
+}

@@ -1,0 +1,44 @@
+.explanation-section {
+  position: sticky;
+  top: 100px;
+}
+
+.summary-card {
+  padding: 1.5rem;
+}
+
+.changes-list h4 {
+  margin-bottom: 1rem;
+  color: var(--text-muted);
+}
+
+.change-card {
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.change-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.badge-field {
+  margin-left: auto;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: var(--text-muted);
+}
+
+.change-details {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.diff-view {
+  font-family: monospace;
+}

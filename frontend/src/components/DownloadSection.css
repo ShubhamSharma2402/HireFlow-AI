@@ -1,0 +1,36 @@
+.download-section {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.approval-banner {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+}
+
+.approved-badge {
+  padding: 1rem;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+  display: inline-block;
+}
+
+.download-grid {
+  gap: 2rem;
+}
+
+.download-grid-single {
+  grid-template-columns: 1fr;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
