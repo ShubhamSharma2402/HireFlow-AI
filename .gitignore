@@ -3,6 +3,7 @@ node_modules/
 
 # Environment
 .env
+.env.*
 .env.local
 .env.*.local
 
@@ -17,9 +18,19 @@ npm-debug.log*
 # Uploads & runtime data
 backend/uploads/
 
+# Local history (CRITICAL)
+.history/
+
+# Firebase / secrets
+backend/config/firebase-service-account.json
+firebase-service-account.json
+config/firebase-service-account.json
+backend/config/*.json
+
 # OS
 .DS_Store
 Thumbs.db
+*.tmp
 
 # Test coverage
 coverage/
