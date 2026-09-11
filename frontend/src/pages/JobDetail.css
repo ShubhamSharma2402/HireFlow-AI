@@ -1,0 +1,225 @@
+.job-detail-loading {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.loading-content {
+  max-width: 480px;
+  width: 100%;
+  padding: 3rem 2rem;
+  text-align: center;
+  border-radius: var(--radius-xl);
+}
+
+.loading-ring {
+  width: 72px;
+  height: 72px;
+  border: 4px solid rgba(124,58,237,0.2);
+  border-top-color: var(--purple);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1.5rem;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.spin { animation: spin 1s linear infinite; }
+
+.loading-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.loading-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  text-align: left;
+  padding: 1rem;
+  background: rgba(255,255,255,0.02);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+}
+
+.loading-step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* Error state */
+.job-detail-error {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 4rem;
+  gap: 1.5rem;
+}
+
+.error-card {
+  max-width: 480px;
+  width: 100%;
+  padding: 3rem 2rem;
+  text-align: center;
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.text-red { color: var(--red); }
+
+.error-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+/* Detail page */
+.job-detail-page {
+  min-height: 100vh;
+  padding-bottom: 4rem;
+}
+
+.detail-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: 1rem;
+  padding: 2.5rem 0 1.5rem;
+}
+
+.detail-header-center {
+  text-align: center;
+}
+
+.detail-header h1 {
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0.5rem 0;
+}
+
+.job-info-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 0.35rem 0.875rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-full);
+  margin-top: 0.5rem;
+}
+
+.success-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.875rem;
+  background: rgba(16,185,129,0.12);
+  border: 1px solid rgba(16,185,129,0.25);
+  border-radius: var(--radius-full);
+  color: var(--green);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.score-before { color: var(--red); font-weight: 700; }
+.score-after { color: var(--green); font-weight: 700; }
+
+/* Reuse agent log styles from Results */
+.agent-log {
+  margin: 1rem 0;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-glass);
+  padding: 0.75rem 1rem;
+}
+
+.agent-log-summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  list-style: none;
+}
+
+.agent-log-body {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.agent-decision-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.decision-step {
+  font-weight: 600;
+  color: var(--purple-light);
+  min-width: 140px;
+  font-size: 0.75rem;
+  font-family: monospace;
+}
+
+.decision-msg { color: var(--text-muted); flex: 1; }
+.decision-score { color: var(--cyan); font-size: 0.75rem; font-weight: 600; }
+
+/* Reuse tabs from Results */
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.resume-tab-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .detail-header {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .detail-header > *:last-child { display: none; }
+}
+
+/* Apply button */
+.apply-job-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 1.25rem;
+  background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
+  color: #fff !important;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(124,58,237,0.4);
+}
+.apply-job-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(124,58,237,0.6);
+  color: #fff !important;
+}
+

@@ -3,13 +3,29 @@ const mongoose = require('mongoose');
 const jobSchema = new mongoose.Schema({
   hash: {
     type: String,
-    unique: true,
-    index: true
+    sparse: true,
+    index: true,
   },
-  title: String,
-  company: String,
-  location: String,
-  rawText: String,
+  title: { type: String, default: 'Unknown Title' },
+  company: { type: String, default: 'Unknown Company' },
+  location: { type: String, default: '' },
+  rawText: { type: String, default: '' },
+  source: {
+    type: String,
+    enum: ['manual', 'adzuna', 'internshala', 'linkedin', 'naukri', 'other'],
+    default: 'manual',
+    index: true,
+  },
+  sourceUrl: { type: String, default: '' },
+  redirectUrl: { type: String, default: '' },
+  jobType: {
+    type: String,
+    enum: ['internship', 'full-time', 'part-time', 'contract', 'unknown'],
+    default: 'unknown',
+  },
+  // Top-level skill arrays for fast querying
+  skillsRequired: [{ type: String }],
+  keywords: [{ type: String }],
   parsedData: {
     title: String,
     company: String,
@@ -17,19 +33,18 @@ const jobSchema = new mongoose.Schema({
     skills: [String],
     keywords: [String],
     responsibilities: [String],
-    niceToHave: [String]
+    niceToHave: [String],
   },
-  sourceUrl: String,
   cachedAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
   },
   expiresAt: {
     type: Date,
-    default: () => new Date(+new Date() + 7 * 24 * 60 * 60 * 1000)
-  }
+    default: () => new Date(+new Date() + 7 * 24 * 60 * 60 * 1000),
+  },
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
 module.exports = mongoose.model('Job', jobSchema);
