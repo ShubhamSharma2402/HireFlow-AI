@@ -1,33 +1,119 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, FileText, CheckCircle, ArrowRight, Brain, Target, MessageSquare, RefreshCw, Layers, History, Zap, Bot } from 'lucide-react';
+import {
+  Upload, FileText, CheckCircle, Brain, Target, MessageSquare,
+  RefreshCw, Layers, History, Shield, Sparkles, AlertCircle, Loader2
+} from 'lucide-react';
 import { agentAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import AgentProgress from '../components/AgentProgress';
+import SkillConfirmationModal from '../components/SkillConfirmationModal';
 import './Home.css';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, mongoUser } = useAuth();
 
-  const [mode, setMode] = useState('manual'); // 'manual' | 'automation'
+  const [analyzing, setAnalyzing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [preAnalysis, setPreAnalysis] = useState(null);
+
   const [formData, setFormData] = useState({
-    name: '',
+    name: mongoUser?.name || user?.displayName || '',
     jobDescription: '',
     resumeFile: null,
   });
+  const [formError, setFormError] = useState('');
 
+  // Primary submission: checks for missing skills first
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.resumeFile || !formData.jobDescription) return;
+    setFormError('');
 
-    setLoading(true);
+    if (!formData.resumeFile) {
+      setFormError('Please upload your resume (PDF or TXT format).');
+      return;
+    }
+    if (!formData.jobDescription.trim()) {
+      setFormError('Please paste the target job description.');
+      return;
+    }
+
+    setAnalyzing(true);
     try {
       const data = new FormData();
-      data.append('userName', formData.name || 'Candidate');
-      data.append('jobText', formData.jobDescription);
+      data.append('jobText', formData.jobDescription.trim());
       data.append('resume', formData.resumeFile);
+      if (formData.name.trim()) data.append('userName', formData.name.trim());
+
+      const res = await agentAPI.analyzeGaps(data);
+      setAnalyzing(false);
+
+      if (res && res.data) {
+        const { requiresConfirmation, missingSkills, baselineScore, targetThreshold } = res.data;
+
+        // If missing skills were detected requiring user decision, display the prominent modal
+        if (requiresConfirmation && missingSkills && missingSkills.length > 0) {
+          setPreAnalysis(res.data);
+          setShowConfirmModal(true);
+        } else {
+          // If already >= 80 or no missing skills, proceed directly
+          executeOptimization([], 'none', [], res.data.extractedResumeText);
+        }
+      } else {
+        // Fallback to direct run if analysis returned no payload
+        executeOptimization([], 'none');
+      }
+    } catch (error) {
+      setAnalyzing(false);
+      const msg = error?.response?.data?.message || error.message || 'Error analyzing resume against target role.';
+      setFormError(msg);
+      console.error('Pre-analysis error:', error);
+    }
+  };
+
+  // User confirmed: Yes, Add to Resume
+  const handleConfirmSkills = () => {
+    setShowConfirmModal(false);
+    const confirmedSkills = (preAnalysis?.missingSkills || []).map(item =>
+      typeof item === 'string' ? item : item.skill
+    );
+    executeOptimization(confirmedSkills, 'add_confirmed', [], preAnalysis?.extractedResumeText);
+  };
+
+  // User declined: No, Continue Without Adding
+  const handleDeclineSkills = () => {
+    setShowConfirmModal(false);
+    const declinedSkills = (preAnalysis?.missingSkills || []).map(item =>
+      typeof item === 'string' ? item : item.skill
+    );
+    executeOptimization([], 'declined', declinedSkills, preAnalysis?.extractedResumeText);
+  };
+
+  // Executes the full agentic optimization loop with explicit user confirmation choice
+  const executeOptimization = async (confirmedSkills = [], userChoice = 'none', declinedSkills = [], cachedResumeText = null) => {
+    setLoading(true);
+    setFormError('');
+
+    try {
+      const data = new FormData();
+      data.append('userName', formData.name.trim() || mongoUser?.name || user?.displayName || 'Candidate');
+      if (user?.uid || mongoUser?._id) {
+        data.append('userId', mongoUser?._id || user?.uid);
+      }
+      data.append('jobText', formData.jobDescription.trim());
+
+      // Use cached extracted text if available to avoid re-parsing PDF, or attach file
+      if (cachedResumeText) {
+        data.append('resumeText', cachedResumeText);
+      } else {
+        data.append('resume', formData.resumeFile);
+      }
+
+      data.append('userChoice', userChoice);
+      data.append('confirmedSkills', JSON.stringify(confirmedSkills));
+      data.append('declinedSkills', JSON.stringify(declinedSkills));
 
       const res = await agentAPI.runAgent(data);
       setLoading(false);
@@ -35,207 +121,182 @@ const Home = () => {
       if (res && res.success) {
         navigate('/results', { state: { result: res.data } });
       } else {
-        alert('Agent returned an unexpected response. Check the console.');
+        setFormError(res?.message || 'Agent returned an unexpected response. Please try again.');
         console.error('Agent response:', res);
       }
     } catch (error) {
       setLoading(false);
-      const msg = error?.response?.data?.message || error.message || 'Unknown error';
-      alert(`Error running agent: ${msg}`);
+      const msg = error?.response?.data?.message || error.message || 'Error running optimization session.';
+      setFormError(msg);
       console.error('Agent error:', error);
     }
   };
 
   return (
     <div className="home-page">
+      {/* Skill Confirmation Modal shown before resume generation */}
+      <SkillConfirmationModal
+        isOpen={showConfirmModal}
+        missingSkills={preAnalysis?.missingSkills || []}
+        baselineScore={preAnalysis?.baselineScore || 0}
+        targetThreshold={preAnalysis?.targetThreshold || 80}
+        onConfirm={handleConfirmSkills}
+        onDecline={handleDeclineSkills}
+      />
+
       {loading && <AgentProgress onCancel={() => setLoading(false)} />}
 
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-background" />
-        <div className="hero-glow-ring" />
-        <div className="hero-chips">
-          {['React', 'Node.js', 'ATS Score', 'Python', 'MongoDB', 'Docker', 'ML / AI', 'TypeScript'].map((chip, i) => (
-            <span key={i} className="hero-chip">{chip}</span>
-          ))}
-        </div>
         <div className="container hero-container fade-in-up">
-          <div className="badge">
-            <SparklesIcon /> AI-Powered • Agentic • Intelligent
+          <div className="badge badge-purple mb-4">
+            <Sparkles size={14} className="text-purple-light" /> Genuinely Agentic • ATS Target 80 • Factual Evidence
           </div>
           <h1>
-            Land Your Dream Job with <br />
-            <span className="gradient-text">AI-Powered Precision</span>
+            Transform Your Resume for <br />
+            <span className="gradient-text">Your Target Role</span>
           </h1>
           <p className="hero-subtitle">
-            Upload your resume and let our multi-agent AI find jobs, optimize your application, beat ATS systems, and impress recruiters — automatically.
+            Upload your resume and paste your target job description. Our bounded AI agent performs
+            full-document rewriting, intelligent skill categorization, and evidence-grounded optimization
+            without fabricating qualifications.
           </p>
 
           <div className="stats-container">
             <div className="stat-card glass-card">
-              <h3>94%</h3>
-              <p>Match Rate</p>
+              <h3>80 pts</h3>
+              <p>Target ATS Threshold</p>
             </div>
             <div className="stat-card glass-card">
-              <h3>3x</h3>
-              <p>More Interviews</p>
+              <h3>Bounded</h3>
+              <p>Max 2 Rewrite Attempts</p>
             </div>
             <div className="stat-card glass-card">
-              <h3>100%</h3>
-              <p>ATS Optimized</p>
+              <h3>Truthful</h3>
+              <p>User-Confirmed Skills</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Mode Toggle */}
-      <section className="mode-section">
+      {/* Primary Optimization Workflow */}
+      <section className="upload-section">
         <div className="container">
-          <div className="mode-toggle-wrapper fade-in-up">
-            <p className="mode-label text-muted">Choose your mode</p>
-            <div className="mode-toggle">
-              <button
-                className={`mode-btn ${mode === 'manual' ? 'active' : ''}`}
-                onClick={() => setMode('manual')}
-              >
-                <FileText size={18} />
-                <span>
-                  <strong>Manual Mode</strong>
-                  <small>Upload resume + paste job description</small>
-                </span>
-              </button>
-              <button
-                className={`mode-btn ${mode === 'automation' ? 'active' : ''}`}
-                onClick={() => setMode('automation')}
-              >
-                <Bot size={18} />
-                <span>
-                  <strong>Automation Mode</strong>
-                  <small>AI finds & applies to jobs for you</small>
-                </span>
-                <span className="mode-badge">NEW</span>
-              </button>
+          <div className="upload-card glass-card fade-in-up">
+            <div className="card-header-area text-center mb-6">
+              <h2>Resume Optimization Session</h2>
+              <p className="text-muted">
+                Provide your existing resume and target job requirements to begin the optimization loop.
+              </p>
             </div>
+
+            {formError && (
+              <div className="form-error-banner flex items-center gap-2 mb-6">
+                <AlertCircle size={18} className="text-red flex-shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="upload-form">
+              <div className="form-group">
+                <label>Candidate Name (Optional)</label>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="e.g. Alex Morgan"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Resume (PDF or TXT) <span className="text-purple">*</span></label>
+                <div className="file-drop-area">
+                  <Upload size={32} className="text-muted mb-2" />
+                  <p>Drag & drop your resume file or click to browse</p>
+                  <p className="text-muted text-xs mt-1">Accepts PDF and TXT (Max 10MB)</p>
+                  <input
+                    type="file"
+                    accept=".pdf,.txt"
+                    onChange={(e) => setFormData({ ...formData, resumeFile: e.target.files[0] })}
+                  />
+                  {formData.resumeFile && (
+                    <p className="file-name text-green flex items-center justify-center gap-1 mt-2">
+                      <CheckCircle size={15} /> {formData.resumeFile.name}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Target Job Description <span className="text-purple">*</span></label>
+                <textarea
+                  className="input-field job-textarea"
+                  placeholder="Paste the full job description here (title, requirements, responsibilities, technical qualifications)..."
+                  value={formData.jobDescription}
+                  onChange={(e) => setFormData({ ...formData, jobDescription: e.target.value })}
+                  rows={8}
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary submit-btn"
+                disabled={analyzing || loading}
+              >
+                {analyzing ? (
+                  <>
+                    <Loader2 size={20} className="spin" />
+                    Analyzing Skill Gaps...
+                  </>
+                ) : (
+                  <>
+                    <Brain size={20} />
+                    Start Optimization Session
+                  </>
+                )}
+              </button>
+            </form>
           </div>
         </div>
       </section>
 
-      {/* Conditional Content by Mode */}
-      {mode === 'manual' ? (
-        /* ── MANUAL MODE (Existing — Unchanged) ── */
-        <section className="upload-section">
-          <div className="container">
-            <div className="upload-card glass-card fade-in-up">
-              <h2>Optimize Your Application</h2>
-              <form onSubmit={handleSubmit} className="upload-form">
-                <div className="form-group">
-                  <label>Your Name</label>
-                  <input
-                    type="text"
-                    className="input-field"
-                    placeholder="John Doe"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Job Description</label>
-                  <textarea
-                    className="input-field"
-                    placeholder="Paste the job description here..."
-                    value={formData.jobDescription}
-                    onChange={(e) => setFormData({ ...formData, jobDescription: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>Resume (PDF or TXT)</label>
-                  <div className="file-drop-area">
-                    <Upload size={32} className="text-muted mb-2" />
-                    <p>Drag & drop or click to upload</p>
-                    <input
-                      type="file"
-                      accept=".pdf,.txt"
-                      onChange={(e) => setFormData({ ...formData, resumeFile: e.target.files[0] })}
-                      required
-                    />
-                    {formData.resumeFile && (
-                      <p className="file-name text-green">{formData.resumeFile.name}</p>
-                    )}
-                  </div>
-                </div>
-
-                <button type="submit" className="btn btn-primary submit-btn">
-                  <Brain size={20} />
-                  Run AI Agent
-                </button>
-              </form>
-            </div>
-          </div>
-        </section>
-      ) : (
-        /* ── AUTOMATION MODE (New) ── */
-        <section className="automation-cta-section">
-          <div className="container">
-            <div className="automation-cta glass-card fade-in-up">
-              <div className="automation-cta-icon">
-                <Bot size={40} />
-              </div>
-              <h2>Let AI Do the Job Hunt</h2>
-              <p className="text-muted">
-                Upload your resume once. Our AI agents will fetch real job listings from Adzuna,
-                match them against your skills, rank by compatibility, and optimize your resume
-                for each job — all automatically.
-              </p>
-              <div className="automation-cta-steps">
-                {[
-                  { step: '1', label: 'Upload Resume', icon: '📄' },
-                  { step: '2', label: 'Select Roles', icon: '🎯' },
-                  { step: '3', label: 'AI Fetches & Ranks', icon: '🤖' },
-                  { step: '4', label: 'Get Optimized Apps', icon: '✅' },
-                ].map((s) => (
-                  <div key={s.step} className="cta-step">
-                    <span className="cta-step-icon">{s.icon}</span>
-                    <span>{s.label}</span>
-                  </div>
-                ))}
-              </div>
-              {user ? (
-                <button
-                  className="btn btn-primary automation-start-btn"
-                  onClick={() => navigate('/automation')}
-                >
-                  <Zap size={20} /> Start Automation
-                </button>
-              ) : (
-                <div className="auth-cta">
-                  <p className="text-muted">Sign in to unlock automation mode</p>
-                  <button
-                    className="btn btn-primary automation-start-btn"
-                    onClick={() => navigate('/login')}
-                  >
-                    Sign In to Continue
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* How It Works */}
+      {/* How the Agent Works */}
       <section id="how-it-works" className="how-it-works container">
-        <h2 className="section-title text-center">How It Works</h2>
+        <h2 className="section-title text-center">How the Optimization Agent Works</h2>
+        <p className="section-subtitle text-center">
+          A disciplined, bounded decision loop that respects candidate facts while maximizing ATS match.
+        </p>
+
         <div className="steps-container">
           {[
-            { icon: <FileText />, title: 'Parse', desc: 'Extracts data from resume & job desc.' },
-            { icon: <Target />, title: 'Analyze', desc: 'Identifies gaps & keyword matches.' },
-            { icon: <RefreshCw />, title: 'Optimize', desc: 'Rewrites resume to highlight fit.' },
-            { icon: <MessageSquare />, title: 'Generate', desc: 'Creates tailored cover letter & Q&A.' },
-            { icon: <CheckCircle />, title: 'Review', desc: 'You approve the final ATS-friendly result.' },
+            {
+              icon: <FileText />,
+              title: '1. Parse & Check Gaps',
+              desc: 'Extracts skills across entire resume and job description to identify genuine gaps.'
+            },
+            {
+              icon: <Target />,
+              title: '2. Confirm Skills',
+              desc: 'Prompts you to confirm whether you possess missing skills before rewriting.'
+            },
+            {
+              icon: <RefreshCw />,
+              title: '3. Full Rewrite',
+              desc: 'Rewrites complete resume with categorized skills and concise action bullets.'
+            },
+            {
+              icon: <Shield />,
+              title: '4. Validate & Score',
+              desc: 'Enforces factual integrity and re-scores against target threshold (80).'
+            },
+            {
+              icon: <CheckCircle />,
+              title: '5. Deliver & Export',
+              desc: 'Selects the best valid candidate with real PDF export, cover letter, and Q&A prep.'
+            },
           ].map((step, i) => (
             <div key={i} className="step-card glass-card text-center">
               <div className="step-icon">{step.icon}</div>
@@ -246,16 +307,41 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Features */}
       <section id="features" className="features container mb-20">
-        <h2 className="section-title text-center">Features</h2>
+        <h2 className="section-title text-center">Engineered for ATS & Recruiter Precision</h2>
         <div className="grid grid-cols-3">
           {[
-            { icon: <Target className="text-cyan" size={32} />, title: 'Match Score', desc: 'See exactly how well your resume matches the job description before and after optimization.' },
-            { icon: <Layers className="text-purple" size={32} />, title: 'ATS Optimization', desc: 'Ensures your resume passes through Applicant Tracking Systems with perfect formatting.' },
-            { icon: <FileText className="text-green" size={32} />, title: 'Smart Cover Letter', desc: 'Generates a highly personalized cover letter highlighting your most relevant experience.' },
-            { icon: <MessageSquare className="text-yellow" size={32} />, title: 'Q&A Prep', desc: 'Anticipates interview questions based on the job and provides tailored answers.' },
-            { icon: <RefreshCw className="text-orange" size={32} />, title: 'Before/After Diff', desc: 'Transparently see exactly what the AI changed with an intuitive side-by-side view.' },
-            { icon: <History className="text-cyan" size={32} />, title: 'Agent Memory', desc: 'The system remembers your profile and improves suggestions over multiple applications.' },
+            {
+              icon: <Target className="text-cyan" size={32} />,
+              title: 'Evidence-Aware Mapping',
+              desc: 'Skills are only integrated if backed by resume evidence or explicit user confirmation.'
+            },
+            {
+              icon: <Layers className="text-purple" size={32} />,
+              title: 'Intelligent Categorization',
+              desc: 'Organizes skills under standard headings (Frontend, Backend, Databases) rather than dumping keywords.'
+            },
+            {
+              icon: <FileText className="text-green" size={32} />,
+              title: 'Action-Oriented Bullets',
+              desc: 'Converts weak descriptions into concise 1–1.5 line bullets: Action verb + approach + verifiable outcome.'
+            },
+            {
+              icon: <MessageSquare className="text-yellow" size={32} />,
+              title: 'Tailored Cover Letter & Q&A',
+              desc: 'Generates role-aligned cover letters and interview prep based strictly on candidate facts.'
+            },
+            {
+              icon: <RefreshCw className="text-orange" size={32} />,
+              title: 'Bounded Decision Loop',
+              desc: 'Target score threshold (80) and max 2 attempts prevent hallucination loops and wasted calls.'
+            },
+            {
+              icon: <History className="text-cyan" size={32} />,
+              title: 'Selectable Text PDF Export',
+              desc: 'Download clean, single-column, ATS-friendly PDFs with verified font and layout rendering.'
+            },
           ].map((f, i) => (
             <div key={i} className="feature-card glass-card">
               <div className="mb-4">{f.icon}</div>
@@ -268,11 +354,5 @@ const Home = () => {
     </div>
   );
 };
-
-const SparklesIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <path d="M12 3l2 5h5l-4 4 1 5-4-3-4 3 1-5-4-4h5l2-5z" />
-  </svg>
-);
 
 export default Home;

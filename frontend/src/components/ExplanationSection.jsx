@@ -2,18 +2,32 @@ import React from 'react';
 import { Info, Plus, Edit2, Layout, CheckCircle2 } from 'lucide-react';
 import './ExplanationSection.css';
 
+const safeText = (val) => {
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'string') return val;
+  if (Array.isArray(val)) {
+    return val.map(safeText).filter(Boolean).join('\n');
+  }
+  if (typeof val === 'object') {
+    return val.description || val.bullet || val.text || val.improved || val.original || val.reason || val.explanation || val.name || JSON.stringify(val);
+  }
+  return String(val);
+};
+
 const ExplanationSection = ({ changes = [], explanations = {}, overallSummary = '' }) => {
   const getIcon = (field) => {
-    const f = String(field || '').toLowerCase();
+    const f = safeText(field).toLowerCase();
     if (f.includes('summary')) return <Edit2 size={16} className="text-purple" />;
     if (f.includes('skill') || f.includes('keyword')) return <Plus size={16} className="text-cyan" />;
     return <Layout size={16} className="text-orange" />;
   };
 
-  const summaryText =
-    overallSummary ||
-    explanations.overallSummary ||
-    "The AI agent analyzed the job requirements and performed targeted rewrites on weak areas to naturally integrate missing keywords, improve action verbs, and maximize ATS score.";
+  const rawSummary = overallSummary || explanations.overallSummary || '';
+  const summaryText = rawSummary
+    ? safeText(rawSummary)
+    : "The AI agent analyzed the job requirements and performed targeted rewrites on weak areas to naturally integrate missing keywords, improve action verbs, and maximize ATS score.";
+
+  const normalizedChanges = Array.isArray(changes) ? changes : [];
 
   return (
     <div className="explanation-section">
@@ -29,20 +43,20 @@ const ExplanationSection = ({ changes = [], explanations = {}, overallSummary = 
 
       <div className="changes-list flex flex-col gap-3">
         <h4 className="text-sm font-semibold text-muted tracking-wider uppercase mb-1">
-          Detailed Improvements ({changes.length})
+          Detailed Improvements ({normalizedChanges.length})
         </h4>
 
-        {changes.length === 0 ? (
+        {normalizedChanges.length === 0 ? (
           <div className="glass-card p-4 text-center text-muted text-sm">
             <CheckCircle2 size={24} className="text-green mx-auto mb-2" />
             Resume already meets target requirements! No major rewrites required.
           </div>
         ) : (
-          changes.map((change, i) => {
-            const field = change.field || change.section || 'General';
-            const originalText = change.original || change.old || '';
-            const improvedText = change.improved || change.new || '';
-            const reason = change.reason || change.explanation || 'Optimized to match key job requirements.';
+          normalizedChanges.map((change, i) => {
+            const field = safeText(change.field || change.section || 'General');
+            const originalText = safeText(change.original || change.old || '');
+            const improvedText = safeText(change.improved || change.new || change.description || '');
+            const reason = safeText(change.reason || change.explanation || 'Optimized to match key job requirements.');
 
             return (
               <div key={i} className="change-card glass-card p-4">

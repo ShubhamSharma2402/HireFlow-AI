@@ -6,6 +6,7 @@ const fs = require('fs');
 
 const {
   runAgent,
+  analyzeGaps,
   getAnalysis,
   getApplication,
   approveApplication,
@@ -43,6 +44,7 @@ const upload = multer({
 });
 
 // Routes
+router.post('/analyze-gaps', upload.single('resume'), analyzeGaps);
 router.post('/run', upload.single('resume'), runAgent);
 router.get('/analysis/:id', getAnalysis);
 router.get('/application/:id', getApplication);

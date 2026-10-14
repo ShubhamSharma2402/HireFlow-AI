@@ -7,6 +7,7 @@ const ResumeParser = require('./tools/ResumeParser');
 const KeywordExtractor = require('./tools/KeywordExtractor');
 const MatchScorer = require('./tools/MatchScorer');
 const ResumeRewriter = require('./tools/ResumeRewriter');
+const ResumeValidator = require('./tools/ResumeValidator');
 const CoverLetterGenerator = require('./tools/CoverLetterGenerator');
 const QAGenerator = require('./tools/QAGenerator');
 const ExplanationGenerator = require('./tools/ExplanationGenerator');
@@ -20,7 +21,7 @@ class ToolRegistry {
   _registerAll() {
     const toolList = [
       JobDescriptionParser, ResumeParser, KeywordExtractor, MatchScorer,
-      ResumeRewriter, CoverLetterGenerator, QAGenerator, ExplanationGenerator
+      ResumeRewriter, ResumeValidator, CoverLetterGenerator, QAGenerator, ExplanationGenerator
     ];
     toolList.forEach(tool => {
       this.tools[tool.name] = tool;

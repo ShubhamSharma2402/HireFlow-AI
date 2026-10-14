@@ -43,7 +43,11 @@ Generate personalized interview Q&A.`;
 
   try {
     const result = await callLLM(prompt, systemPrompt, { responseFormat: 'json_object', temperature: 0.6 });
-    const parsed = JSON.parse(result.content);
+    let contentStr = (result.content || '').trim();
+    if (contentStr.startsWith('```')) {
+      contentStr = contentStr.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    }
+    const parsed = JSON.parse(contentStr);
     let list = parsed.qaList || parsed.questions || parsed.answers || parsed.qa || (Array.isArray(parsed) ? parsed : []);
 
     if (!Array.isArray(list) || list.length === 0) {

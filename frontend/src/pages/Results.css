@@ -4,15 +4,149 @@
 }
 
 .results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.back-btn {
+  flex-shrink: 0;
+}
+
+.header-center {
+  flex: 1;
   text-align: center;
-  margin-bottom: 3rem;
+}
+
+.header-spacer {
+  width: 100px; /* mirrors back-btn to center the title */
+  flex-shrink: 0;
+}
+
+.success-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.85rem;
+  background: var(--green-dim);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--green);
+  margin-bottom: 0.75rem;
 }
 
 .results-header h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  margin-bottom: 0.5rem;
+}
+
+.score-before {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.score-after {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.score-improvement {
+  color: var(--green);
+  font-weight: 600;
+}
+
+/* Agent decision log */
+.agent-log {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  cursor: pointer;
+}
+
+.agent-log-summary {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.agent-log-summary::-webkit-details-marker { display: none; }
+
+.agent-log-body {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.agent-decision-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  background: rgba(255,255,255,0.02);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.decision-step {
+  color: var(--purple-light);
+  font-weight: 600;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  font-family: monospace;
+  background: var(--purple-dim);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.decision-msg {
+  color: var(--text-muted);
+  flex: 1;
+  font-size: 0.82rem;
+}
+
+.decision-score {
+  color: var(--cyan);
+  font-weight: 600;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+/* Tabs */
+.tabs-container {
+  margin-bottom: 2rem;
 }
 
 .tab-content {
   min-height: 500px;
+}
+
+/* Resume tab layout */
+.resume-tab-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .results-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .header-spacer {
+    display: none;
+  }
+
+  .back-btn {
+    align-self: flex-start;
+  }
 }

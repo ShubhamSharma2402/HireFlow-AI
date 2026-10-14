@@ -1,0 +1,217 @@
+/* ── SuggestedSkills Component Styles ───────────────────── */
+
+.suggested-skills {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ss-confirmed-card {
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  background: rgba(16, 185, 129, 0.04) !important;
+}
+
+.ss-confirmed-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--green-dim);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: var(--green);
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.ss-declined-card {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+  background: rgba(239, 68, 68, 0.04) !important;
+}
+
+.ss-declined-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--red-dim);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--red);
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.suggested-skills-empty {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.suggested-skills-empty h3 {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Header card */
+.ss-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+}
+
+.ss-header-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  background: rgba(234, 179, 8, 0.1);
+  border: 1px solid rgba(234, 179, 8, 0.25);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ss-header h3 {
+  font-size: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+/* Skills List */
+.ss-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.ss-item {
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.ss-item.open {
+  border-color: rgba(168, 85, 247, 0.3);
+  background: rgba(124, 58, 237, 0.04);
+}
+
+.ss-item-header {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: var(--text-main);
+  font-family: inherit;
+  text-align: left;
+  transition: var(--transition-fast);
+}
+
+.ss-item-header:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.ss-item-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.ss-item-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.ss-skill-badge {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+}
+
+.ss-requirement-preview {
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.ss-has-evidence {
+  color: var(--cyan);
+  font-weight: 600;
+  font-size: 0.75rem;
+  background: var(--cyan-dim);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+/* Item body */
+.ss-item-body {
+  padding: 0 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  border-top: 1px solid var(--border-glass);
+  margin-top: 0;
+  padding-top: 0.75rem;
+}
+
+.ss-detail {
+  display: flex;
+  gap: 0.4rem;
+  font-size: 0.83rem;
+  line-height: 1.5;
+  align-items: flex-start;
+}
+
+.ss-detail-label {
+  font-weight: 600;
+  color: var(--text-main);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ss-action {
+  background: rgba(234, 179, 8, 0.06);
+  border: 1px solid rgba(234, 179, 8, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.75rem;
+  gap: 0.5rem;
+}
+
+.ss-action-text {
+  color: var(--yellow);
+  font-weight: 500;
+}
+
+/* Stop Reason */
+.ss-stop-reason {
+  padding: 0.75rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+}
+
+/* Disclaimer */
+.ss-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding: 0.6rem 0.75rem;
+  background: rgba(234, 179, 8, 0.04);
+  border: 1px solid rgba(234, 179, 8, 0.15);
+  border-radius: var(--radius-sm);
+}

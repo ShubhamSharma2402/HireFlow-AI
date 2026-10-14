@@ -9,10 +9,6 @@ const JobMatch = require('../models/JobMatch');
 const AgentRun = require('../models/AgentRun');
 const Application = require('../models/Application');
 
-const ToolRegistry = require('../agent/ToolRegistry');
-const PlannerAgent = require('../agents/PlannerAgent');
-const ScraperAgent = require('../agents/ScraperAgent');
-const MatchingAgent = require('../agents/MatchingAgent');
 const ResumeOptimizerAgent = require('../agents/ResumeOptimizerAgent');
 
 // ---------------------------------------------------------------------------
@@ -59,204 +55,10 @@ const getOrCreateUser = async (firebaseUser) => {
 // POST /api/automation/start
 // ---------------------------------------------------------------------------
 exports.startAutomation = async (req, res, next) => {
-  let agentRun = null;
-  try {
-    const { resumeText: bodyResumeText } = req.body;
-    const file = req.file || null;
-
-    // Parse roles from body (FormData sends arrays as JSON string or repeated keys)
-    let roles = [];
-    if (req.body.roles) {
-      if (typeof req.body.roles === 'string') {
-        try { roles = JSON.parse(req.body.roles); } catch { roles = [req.body.roles]; }
-      } else if (Array.isArray(req.body.roles)) {
-        roles = req.body.roles;
-      }
-    }
-
-    if (!roles || roles.length === 0) {
-      return res.status(400).json({ success: false, message: 'At least one role must be selected.' });
-    }
-
-    // Extract resume
-    const resumeText = await extractResumeText(file, bodyResumeText);
-    if (!resumeText || resumeText.trim().length < 50) {
-      return res.status(400).json({ success: false, message: 'Resume content is too short or empty.' });
-    }
-
-    // Get or create user
-    const user = await getOrCreateUser(req.firebaseUser);
-
-    // Step 1: Parse resume
-    const resumeData = await ToolRegistry.executeTool('ResumeParser', resumeText);
-    if (!resumeData.rawText) resumeData.rawText = resumeText;
-
-    // Save resume to DB
-    const savedResume = await Resume.create({
-      userId: user._id,
-      originalFileName: file?.originalname || 'resume.txt',
-      rawText: resumeText,
-      parsedData: {
-        name: resumeData.name || '',
-        email: resumeData.email || '',
-        phone: resumeData.phone || '',
-        summary: resumeData.summary || '',
-        skills: Array.isArray(resumeData.skills) ? resumeData.skills : [],
-        experience: Array.isArray(resumeData.experience) ? resumeData.experience : [],
-        education: Array.isArray(resumeData.education) ? resumeData.education : [],
-        projects: Array.isArray(resumeData.projects) ? resumeData.projects : [],
-      },
-      versions: [{ version: 1, content: resumeData, matchScore: 0, createdAt: new Date() }],
-      currentVersion: 1,
-    });
-
-    // Step 2: Plan
-    const planner = new PlannerAgent();
-    const plan = planner.plan(roles, resumeData);
-
-    agentRun = await AgentRun.create({
-      userId: user._id,
-      agentType: 'automation_full',
-      steps: [{ ...plan, timestamp: new Date() }],
-      status: 'running',
-    });
-
-    // Step 3: Scrape jobs
-    const scraper = new ScraperAgent();
-    const scrapedJobs = await scraper.scrapeAll(roles, resumeData.skills || []);
-
-    agentRun.steps.push({
-      step: 'scrape_complete',
-      jobsFound: scrapedJobs.length,
-      timestamp: new Date(),
-    });
-    await agentRun.save();
-
-    // Step 4: Save jobs to DB (upsert)
-    for (const job of scrapedJobs) {
-      try {
-        const saved = await Job.findOneAndUpdate(
-          { title: job.title, company: job.company },
-          {
-            $set: {
-              title: job.title,
-              company: job.company || 'Unknown Company',
-              rawText: job.description || '',
-              source: job.source || 'adzuna',
-              sourceUrl: job.sourceUrl || '',
-              redirectUrl: job.redirectUrl || '',
-              jobType: job.jobType || 'unknown',
-              skillsRequired: job.skillsRequired || [],
-              keywords: job.keywords || [],
-              parsedData: {
-                title: job.title,
-                company: job.company,
-                requirements: job.skillsRequired || [],
-                skills: job.skillsRequired || [],
-                keywords: job.keywords || [],
-                responsibilities: [],
-                niceToHave: [],
-              },
-              expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            },
-          },
-          { upsert: true, new: true }
-        );
-        job._id = saved._id;
-      } catch (err) {
-        console.warn(`[Automation] Failed to save job "${job.title}":`, err.message);
-      }
-    }
-
-    // Step 5: Match jobs to resume
-    const matcher = new MatchingAgent();
-    const matchResults = await matcher.matchAll(resumeData, scrapedJobs);
-
-    agentRun.steps.push({
-      step: 'match_complete',
-      matchesComputed: matchResults.length,
-      timestamp: new Date(),
-    });
-    await agentRun.save();
-
-    // Step 6: Save job matches to DB
-    const responseJobs = [];
-    for (const m of matchResults) {
-      if (!m.job || !m.job._id) continue;
-
-      try {
-        await JobMatch.findOneAndUpdate(
-          { userId: user._id, jobId: m.job._id },
-          {
-            $set: {
-              userId: user._id,
-              jobId: m.job._id,
-              matchScore: m.matchScore,
-              missingSkills: m.missingSkills || [],
-              strongSkills: m.strongSkills || [],
-              atsScoreEstimate: m.atsScoreEstimate || 0,
-              rank: m.rank,
-            },
-          },
-          { upsert: true, new: true }
-        );
-      } catch (err) {
-        console.warn(`[Automation] Failed to save match:`, err.message);
-      }
-
-      responseJobs.push({
-        _id: m.job._id,
-        jobId: m.job._id,
-        title: m.job.title,
-        company: m.job.company,
-        description: m.job.description,
-        skillsRequired: m.job.skillsRequired || [],
-        keywords: m.job.keywords || [],
-        source: m.job.source || 'adzuna',
-        sourceUrl: m.job.sourceUrl || '',
-        redirectUrl: m.job.redirectUrl || '',
-        jobType: m.job.jobType || 'unknown',
-        role: m.job.role || '',
-        matchScore: m.matchScore,
-        atsScoreEstimate: m.atsScoreEstimate,
-        missingSkills: m.missingSkills || [],
-        strongSkills: m.strongSkills || [],
-        rank: m.rank,
-      });
-    }
-
-    // Finalize agent run
-    agentRun.steps.push({
-      step: 'rank_complete',
-      totalRanked: responseJobs.length,
-      timestamp: new Date(),
-    });
-    agentRun.finalDecision = `Scraped and ranked ${responseJobs.length} jobs across ${roles.length} role(s): ${roles.join(', ')}`;
-    agentRun.status = 'completed';
-    await agentRun.save();
-
-    return res.status(200).json({
-      success: true,
-      message: `Found and ranked ${responseJobs.length} jobs`,
-      data: {
-        jobs: responseJobs,
-        agentRunId: agentRun._id,
-        resumeId: savedResume._id,
-        userId: user._id,
-        plan: plan.plan,
-        rolesProcessed: roles,
-      },
-    });
-
-  } catch (error) {
-    console.error('[AutomationController] startAutomation error:', error);
-    if (agentRun) {
-      agentRun.status = 'failed';
-      agentRun.steps.push({ step: 'error', message: error.message, timestamp: new Date() });
-      await agentRun.save().catch(() => {});
-    }
-    next(error);
-  }
+  return res.status(410).json({
+    success: false,
+    message: 'Job automation scraping has been deprecated. Please use the direct agent optimization endpoint at /api/agent/run.',
+  });
 };
 
 // ---------------------------------------------------------------------------
@@ -274,17 +76,14 @@ exports.getJobMatches = async (req, res, next) => {
     const result = matches
       .filter(m => m.jobId) // guard against deleted jobs
       .map(m => ({
-        _id: m.jobId._id,
         matchId: m._id,
         jobId: m.jobId._id,
         title: m.jobId.title || 'Unknown Title',
         company: m.jobId.company || 'Unknown Company',
         skillsRequired: m.jobId.skillsRequired || [],
         keywords: m.jobId.keywords || [],
-        source: m.jobId.source || 'adzuna',
+        source: m.jobId.source || 'internshala',
         sourceUrl: m.jobId.sourceUrl || '',
-        redirectUrl: m.jobId.redirectUrl || '',
-        jobType: m.jobId.jobType || 'unknown',
         description: m.jobId.rawText || '',
         matchScore: m.matchScore,
         atsScoreEstimate: m.atsScoreEstimate,

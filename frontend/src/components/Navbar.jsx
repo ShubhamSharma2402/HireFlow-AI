@@ -85,11 +85,6 @@ const Navbar = () => {
               <Briefcase size={15} /> My Jobs
             </Link>
           )}
-          {user && (
-            <Link to="/automation" onClick={() => setMobileMenuOpen(false)}>
-              🤖 Automation
-            </Link>
-          )}
           <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)}>How It Works</a>
           <a href="#features" onClick={() => setMobileMenuOpen(false)}>Features</a>
           {user ? (

@@ -36,6 +36,11 @@ api.interceptors.response.use(
 
 // ── Existing APIs (preserved) ────────────────────────────────
 export const agentAPI = {
+  analyzeGaps: (formData) =>
+    api.post('/agent/analyze-gaps', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000,
+    }),
   runAgent: (formData) =>
     api.post('/agent/run', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },

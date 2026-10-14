@@ -1,9 +1,16 @@
+const toCleanStr = (val) => {
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'string') return val;
+  if (typeof val === 'object') return val.description || val.text || val.question || val.answer || val.tip || JSON.stringify(val);
+  return String(val);
+};
+
 const normalizeQAItem = (item) => {
   if (!item || typeof item !== 'object') return null;
 
-  const question = String(item.question || item.q || item.Question || '').trim();
-  const answer = String(item.answer || item.a || item.Answer || item.response || '').trim();
-  const tips = String(item.tips || item.tip || item.Tips || '').trim();
+  const question = toCleanStr(item.question || item.q || item.Question || '').trim();
+  const answer = toCleanStr(item.answer || item.a || item.Answer || item.response || '').trim();
+  const tips = toCleanStr(item.tips || item.tip || item.Tips || '').trim();
 
   if (!question && !answer) return null;
 

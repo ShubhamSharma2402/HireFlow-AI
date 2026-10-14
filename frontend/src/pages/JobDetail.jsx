@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Briefcase, Loader, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Briefcase, Loader, CheckCircle, AlertCircle } from 'lucide-react';
 import { automationAPI } from '../services/api';
 import ScoreVisualizer from '../components/ScoreVisualizer';
 import ResumeComparison from '../components/ResumeComparison';
@@ -103,17 +103,38 @@ const JobDetail = () => {
       atsIssues: r.finalScore?.atsIssues ?? [],
     };
 
+    const toSafe = (val) => {
+      if (val === null || val === undefined) return '';
+      if (typeof val === 'string') return val;
+      if (Array.isArray(val)) return val.map(toSafe).filter(Boolean).join('\n');
+      if (typeof val === 'object') {
+        return val.description || val.message || val.action || val.step || val.bullet || val.text || val.improved || val.original || JSON.stringify(val);
+      }
+      return String(val);
+    };
+
+    const rawChanges = r.changeLog ?? [];
+    const changes = Array.isArray(rawChanges)
+      ? rawChanges.map(c => {
+          if (typeof c === 'string') return { field: 'General', original: '', improved: c, reason: 'Improvement' };
+          return {
+            field: toSafe(c?.field || c?.section || 'General'),
+            original: toSafe(c?.original || c?.old || ''),
+            improved: toSafe(c?.improved || c?.new || c?.description || ''),
+            reason: toSafe(c?.reason || c?.explanation || '')
+          };
+        })
+      : [];
+
     const resumeData = {
       original: r.resumeData,
       optimized: r.improvedResume,
-      changes: r.changeLog ?? [],
+      changes,
       originalText: r.resumeData?.rawText ?? JSON.stringify(r.resumeData ?? {}, null, 2),
       optimizedText: r.improvedResume?.rawText ?? JSON.stringify(r.improvedResume ?? {}, null, 2),
     };
 
     const qaData = normalizeQAList(r.qaResponses ?? []);
-
-    const applyUrl = job?.redirectUrl || job?.sourceUrl;
 
     return (
       <div className="job-detail-page">
@@ -137,19 +158,6 @@ const JobDetail = () => {
                   <Briefcase size={14} /> {job.title} at {job.company}
                 </div>
               )}
-              {applyUrl && (
-                <div style={{ marginTop: '0.75rem' }}>
-                  <a
-                    href={applyUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="apply-job-btn"
-                  >
-                    <ExternalLink size={15} />
-                    Apply / View on Adzuna
-                  </a>
-                </div>
-              )}
             </div>
             <div />
           </div>
@@ -163,8 +171,8 @@ const JobDetail = () => {
               <div className="agent-log-body">
                 {r.agentDecisions.map((d, i) => (
                   <div key={i} className="agent-decision-item">
-                    <span className="decision-step">{d.step}</span>
-                    <span className="decision-msg">{d.message || d.action}</span>
+                    <span className="decision-step">{toSafe(d.step)}</span>
+                    <span className="decision-msg">{toSafe(d.message || d.action)}</span>
                     {d.score !== undefined && <span className="decision-score">Score: {d.score}</span>}
                   </div>
                 ))}

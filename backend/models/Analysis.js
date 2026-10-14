@@ -4,17 +4,17 @@ const analysisSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    index: true
+    index: true,
   },
   resumeId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Resume',
-    index: true
+    index: true,
   },
   jobId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Job',
-    index: true
+    index: true,
   },
   initialMatchScore: Number,
   finalMatchScore: Number,
@@ -25,21 +25,34 @@ const analysisSchema = new mongoose.Schema({
   weakAreas: [String],
   atsScore: {
     before: Number,
-    after: Number
+    after: Number,
   },
   changeLog: [{
     field: String,
     original: String,
     improved: String,
-    reason: String
+    reason: String,
   }],
+  stopReason: { type: String, default: '' },
+  unsupportedSkills: [{
+    skill: String,
+    category: String,
+    importance: String,
+    jobRequirement: String,
+    reason: String,
+    relatedEvidence: String,
+    action: String,
+  }],
+  confirmedSkills: [String],
+  declinedSkills: [String],
+  userChoice: { type: String, default: 'none' },
   status: {
     type: String,
     enum: ['pending', 'running', 'completed', 'failed'],
-    default: 'pending'
-  }
+    default: 'pending',
+  },
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
 module.exports = mongoose.model('Analysis', analysisSchema);

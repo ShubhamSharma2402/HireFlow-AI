@@ -1,3 +1,5 @@
+/* ── ResumeComparison Formatted Document Styles ──────────────── */
+
 .resume-comparison {
   display: flex;
   flex-direction: column;
@@ -11,101 +13,193 @@
   align-items: stretch;
 }
 
-.resume-pane {
-  padding: 1.5rem;
-  max-height: 700px;
-  min-height: 450px;
+.resume-sheet-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.pane-header-bar {
+  padding: 0 0.25rem;
+}
+
+.document-sheet-pane {
+  background: #ffffff !important;
+  color: #1a1a2e !important;
+  border-radius: var(--radius-md) !important;
+  padding: 2.5rem 2rem;
+  min-height: 600px;
+  max-height: 80vh;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-.pane-header {
-  border-bottom: 1px solid var(--border-glass);
-  padding-bottom: 0.75rem;
-}
-
-.pane-content-body {
-  flex: 1;
-  font-family: 'Inter', -apple-system, sans-serif;
-  font-size: 0.92rem;
-  line-height: 1.8;
-  color: #e2e8f0;
-  overflow-wrap: break-word;
-  word-break: break-word;
-}
-
-.formatted-resume-document {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-
-.resume-section-title {
+.comp-document-sheet {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1e293b;
   font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.comp-doc-header {
+  text-align: center;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.comp-name {
+  font-size: 1.5rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.01em;
+}
+
+.comp-contact {
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.comp-section {
+  margin-bottom: 1rem;
+}
+
+.comp-section-title {
+  font-size: 0.78rem;
+  font-weight: 800;
   text-transform: uppercase;
-  color: var(--purple-light);
-  border-bottom: 1px solid rgba(168, 85, 247, 0.25);
-  padding-bottom: 0.3rem;
-  margin-top: 1.25rem;
+  letter-spacing: 0.08em;
+  color: #0f172a;
+  border-bottom: 1.5px solid #0f172a;
+  padding-bottom: 0.2rem;
   margin-bottom: 0.5rem;
 }
 
-.resume-text-line {
+.comp-summary {
+  font-size: 0.84rem;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.comp-skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.comp-skill-row {
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.comp-skill-row strong {
+  color: #0f172a;
+}
+
+.comp-entry {
+  margin-bottom: 0.75rem;
+}
+
+.comp-entry-header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem;
   margin-bottom: 0.25rem;
-  line-height: 1.7;
 }
 
-.resume-bullet-line {
+.comp-entry-title {
+  font-weight: 700;
+  font-size: 0.87rem;
+  color: #0f172a;
+}
+
+.comp-entry-company {
+  font-size: 0.84rem;
+  color: #475569;
+}
+
+.comp-entry-tech {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-style: italic;
+}
+
+.comp-entry-date {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.comp-bullets {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.comp-bullets li {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: #334155;
   padding-left: 1rem;
-  margin-bottom: 0.4rem;
-  line-height: 1.7;
-  color: #cbd5e1;
+  position: relative;
+  margin-bottom: 0.2rem;
 }
 
-.resume-spacer {
-  height: 0.75rem;
+.comp-bullets li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: #64748b;
 }
 
-/* Clear Red & Green Mark Highlighting */
-mark.removed-text, .removed-text {
-  background: rgba(239, 68, 68, 0.22) !important;
-  color: #f87171 !important;
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 600;
+/* Raw text line fallbacks */
+.comp-bullet-line {
+  padding-left: 1rem;
+  margin-bottom: 0.35rem;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.comp-text-line {
+  margin-bottom: 0.35rem;
+  line-height: 1.6;
+  color: #334155;
+}
+
+.comp-spacer {
+  height: 0.5rem;
+}
+
+/* Highlights */
+mark.doc-removed {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #dc2626 !important;
   text-decoration: line-through;
-  display: inline-block;
-  margin: 2px 0;
+  padding: 1px 4px;
+  border-radius: 3px;
 }
 
-mark.added-text, .added-text {
-  background: rgba(16, 185, 129, 0.22) !important;
-  color: #34d399 !important;
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  padding: 2px 6px;
-  border-radius: 4px;
+mark.doc-added {
+  background: rgba(16, 185, 129, 0.2) !important;
+  color: #059669 !important;
   font-weight: 600;
-  display: inline-block;
-  margin: 2px 0;
+  padding: 1px 4px;
+  border-radius: 3px;
 }
 
-/* Custom Scrollbar for Panes */
-.resume-pane::-webkit-scrollbar {
+/* Scrollbars for sheets */
+.document-sheet-pane::-webkit-scrollbar {
   width: 6px;
 }
-.resume-pane::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
-}
-.resume-pane::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+.document-sheet-pane::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 4px;
 }
 
-@media (max-width: 868px) {
+@media (max-width: 900px) {
   .comparison-grid {
     grid-template-columns: 1fr;
   }

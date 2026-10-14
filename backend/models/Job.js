@@ -12,17 +12,11 @@ const jobSchema = new mongoose.Schema({
   rawText: { type: String, default: '' },
   source: {
     type: String,
-    enum: ['manual', 'adzuna', 'internshala', 'linkedin', 'naukri', 'other'],
+    enum: ['manual', 'internshala', 'linkedin', 'naukri', 'other'],
     default: 'manual',
     index: true,
   },
   sourceUrl: { type: String, default: '' },
-  redirectUrl: { type: String, default: '' },
-  jobType: {
-    type: String,
-    enum: ['internship', 'full-time', 'part-time', 'contract', 'unknown'],
-    default: 'unknown',
-  },
   // Top-level skill arrays for fast querying
   skillsRequired: [{ type: String }],
   keywords: [{ type: String }],

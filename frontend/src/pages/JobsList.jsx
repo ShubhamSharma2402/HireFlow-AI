@@ -77,7 +77,7 @@ const JobsList = () => {
           <div>
             <h1>Your <span className="gradient-text">Job Matches</span></h1>
             <p className="text-muted">
-              {jobs.length} job{jobs.length !== 1 ? 's' : ''} ranked by AI match score
+              {jobs.length} internship{jobs.length !== 1 ? 's' : ''} ranked by AI match score
             </p>
           </div>
           <div className="jobs-header-actions">
@@ -131,7 +131,6 @@ const JobsList = () => {
                     # <SortIcon field="rank" />
                   </th>
                   <th>Job Title</th>
-                  <th>Type</th>
                   <th>Company</th>
                   <th onClick={() => handleSort('matchScore')} className="sortable">
                     Match Score <SortIcon field="matchScore" />
@@ -145,7 +144,7 @@ const JobsList = () => {
               </thead>
               <tbody>
                 {sorted.map((job, i) => (
-                  <tr key={job._id || job.jobId || i} className="job-row">
+                  <tr key={job._id || i} className="job-row">
                     <td className="rank-cell">
                       <span className={`rank-badge ${i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : ''}`}>
                         {job.rank}
@@ -154,15 +153,6 @@ const JobsList = () => {
                     <td>
                       <div className="job-title">{job.title}</div>
                       {job.role && <div className="job-role-tag">{job.role}</div>}
-                    </td>
-                    <td>
-                      <span className={`job-type-tag job-type-${job.jobType || 'unknown'}`}>
-                        {job.jobType === 'internship' ? '🎓 Internship'
-                         : job.jobType === 'full-time' ? '💼 Full-time'
-                         : job.jobType === 'part-time' ? '⏰ Part-time'
-                         : job.jobType === 'contract' ? '📝 Contract'
-                         : '⚡ Open'}
-                      </span>
                     </td>
                     <td className="company-cell">{job.company}</td>
                     <td>
@@ -192,7 +182,7 @@ const JobsList = () => {
                     <td>
                       <button
                         className="btn btn-primary view-btn"
-                        onClick={() => navigate(`/jobs/${job._id || job.jobId}`, { state: { job } })}
+                        onClick={() => navigate(`/jobs/${job._id}`, { state: { job } })}
                       >
                         <Eye size={15} /> Optimize
                       </button>
@@ -208,10 +198,10 @@ const JobsList = () => {
         {!loading && !error && sorted.length === 0 && (
           <div className="jobs-empty glass-card fade-in-up">
             <Briefcase size={48} className="text-muted" />
-            <h2>No Jobs Found</h2>
-            <p className="text-muted">Run the automation to discover internships matching your profile.</p>
-            <button className="btn btn-primary" onClick={() => navigate('/automation')}>
-              Start Job Search
+            <h2>No Saved Jobs Found</h2>
+            <p className="text-muted">You haven't run any resume optimizations yet. Paste a job description to get started.</p>
+            <button className="btn btn-primary" onClick={() => navigate('/')}>
+              Optimize a Resume
             </button>
           </div>
         )}

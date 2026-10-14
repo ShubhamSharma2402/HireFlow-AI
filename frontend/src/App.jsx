@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
@@ -17,16 +17,14 @@ function App() {
         <Navbar />
         <main className="main-content">
           <Routes>
-            {/* Public route */}
+            {/* Public routes */}
             <Route path="/login" element={<Login />} />
 
-            {/* All main application routes require authentication */}
-            <Route path="/" element={
-              <ProtectedRoute><Home /></ProtectedRoute>
-            } />
-            <Route path="/results" element={
-              <ProtectedRoute><Results /></ProtectedRoute>
-            } />
+            {/* Accessible without auth (manual mode) */}
+            <Route path="/" element={<Home />} />
+            <Route path="/results" element={<Results />} />
+
+            {/* Auth-protected routes (automation mode) */}
             <Route path="/automation" element={
               <ProtectedRoute><Automation /></ProtectedRoute>
             } />
@@ -36,9 +34,6 @@ function App() {
             <Route path="/jobs/:jobId" element={
               <ProtectedRoute><JobDetail /></ProtectedRoute>
             } />
-
-            {/* Catch-all redirect to Home */}
-            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>

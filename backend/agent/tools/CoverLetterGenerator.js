@@ -16,7 +16,11 @@ Generate the cover letter in JSON format.`;
   const result = await callLLM(prompt, systemPrompt, { responseFormat: 'json_object', temperature: 0.7 });
 
   try {
-    return JSON.parse(result.content);
+    let contentStr = (result.content || '').trim();
+    if (contentStr.startsWith('```')) {
+      contentStr = contentStr.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    }
+    return JSON.parse(contentStr);
   } catch (e) {
     console.error("Failed to parse LLM JSON in CoverLetterGenerator", e);
     return { error: 'Failed to generate cover letter.' };

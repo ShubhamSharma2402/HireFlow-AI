@@ -201,25 +201,3 @@
   }
   .detail-header > *:last-child { display: none; }
 }
-
-/* Apply button */
-.apply-job-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.55rem 1.25rem;
-  background: linear-gradient(135deg, var(--purple) 0%, var(--purple-light) 100%);
-  color: #fff !important;
-  border-radius: 999px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-decoration: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 14px rgba(124,58,237,0.4);
-}
-.apply-job-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(124,58,237,0.6);
-  color: #fff !important;
-}
-

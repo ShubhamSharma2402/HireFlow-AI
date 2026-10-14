@@ -11,6 +11,8 @@ const Job = require('../models/Job');
 const Memory = require('../models/Memory');
 const User = require('../models/User');
 const AgentLoop = require('../agent/AgentLoop');
+const ToolRegistry = require('../agent/ToolRegistry');
+const config = require('../config/agentConfig');
 
 const agentLoop = new AgentLoop();
 
@@ -26,13 +28,25 @@ const resolveUserId = async (userId, userName) => {
   // Create a guest user record in MongoDB if string ID or non-existent ID was provided
   const guestName = userName || 'Guest Candidate';
   const guestEmail = `guest_${Date.now()}_${Math.floor(Math.random() * 10000)}@hireflow.ai`;
-  
+
   const newUser = await User.create({
     name: guestName,
     email: guestEmail,
   });
 
   return newUser._id;
+};
+
+const flattenToText = (val) => {
+  if (val === null || val === undefined) return '';
+  if (typeof val === 'string') return val;
+  if (Array.isArray(val)) {
+    return val.map(flattenToText).filter(Boolean).join('\n');
+  }
+  if (typeof val === 'object') {
+    return val.description || val.bullet || val.text || val.improved || val.original || val.reason || val.name || val.change || JSON.stringify(val);
+  }
+  return String(val);
 };
 
 /**
@@ -54,10 +68,10 @@ const normalizeChangeLog = (changeLog) => {
         return { field: 'general', original: '', improved: item, reason: 'Resume improvement' };
       }
       return {
-        field: String(item?.field || 'general'),
-        original: String(item?.original || ''),
-        improved: String(item?.improved || ''),
-        reason: String(item?.reason || '')
+        field: flattenToText(item?.field || item?.section || 'general'),
+        original: flattenToText(item?.original || item?.old || ''),
+        improved: flattenToText(item?.improved || item?.new || item?.description || ''),
+        reason: flattenToText(item?.reason || item?.explanation || '')
       };
     });
   }
@@ -80,19 +94,20 @@ const normalizeStringArray = (arr) => {
  * Helper: Extract text from uploaded file or raw text body
  */
 const extractResumeText = async (file, resumeText) => {
-  if (resumeText) return resumeText;
+  if (resumeText && typeof resumeText === 'string' && resumeText.trim().length > 0) {
+    return resumeText.trim();
+  }
   if (!file) throw new Error('No resume provided. Upload a file or pass resumeText.');
 
   const ext = path.extname(file.originalname).toLowerCase();
   if (ext === '.pdf') {
     const dataBuffer = fs.readFileSync(file.path);
     const pdfData = await pdfParse(dataBuffer);
-    // Clean up uploaded file after parsing
-    fs.unlinkSync(file.path);
+    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
     return pdfData.text;
   } else if (ext === '.txt') {
     const text = fs.readFileSync(file.path, 'utf-8');
-    fs.unlinkSync(file.path);
+    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
     return text;
   } else {
     throw new Error('Unsupported file type. Use PDF or TXT.');
@@ -104,6 +119,8 @@ const extractResumeText = async (file, resumeText) => {
  */
 const updateMemory = async (userId, scoreData, jobData) => {
   try {
+    if (!userId) return;
+
     let memory = await Memory.findOne({ userId });
     if (!memory) {
       memory = new Memory({ userId });
@@ -112,11 +129,9 @@ const updateMemory = async (userId, scoreData, jobData) => {
     memory.applicationCount += 1;
     memory.lastActive = new Date();
 
-    // Update average match score
     const prevAvg = memory.averageMatchScore || 0;
     memory.averageMatchScore = ((prevAvg * (memory.applicationCount - 1)) + scoreData.totalScore) / memory.applicationCount;
 
-    // Track weak areas
     for (const area of (scoreData.weakAreas || [])) {
       const existing = memory.weakAreas.find(w => w.skill === area);
       if (existing) {
@@ -127,7 +142,6 @@ const updateMemory = async (userId, scoreData, jobData) => {
       }
     }
 
-    // Track strong areas
     for (const area of (scoreData.strongAreas || [])) {
       const existing = memory.strongAreas.find(s => s.skill === area);
       if (existing) {
@@ -137,7 +151,6 @@ const updateMemory = async (userId, scoreData, jobData) => {
       }
     }
 
-    // Track common missing keywords
     for (const kw of (scoreData.missingKeywords || [])) {
       const existing = memory.commonMissingKeywords.find(k => k.keyword === kw);
       if (existing) {
@@ -154,17 +167,114 @@ const updateMemory = async (userId, scoreData, jobData) => {
 };
 
 /**
- * POST /api/agent/run
- * Main entry point: runs the full agentic pipeline
+ * POST /api/agent/analyze-gaps
+ * Pre-optimization analysis: parses documents, computes baseline match score,
+ * and determines if missing skills require confirmation before resume generation.
  */
-exports.runAgent = async (req, res, next) => {
+exports.analyzeGaps = async (req, res, next) => {
   try {
-    const { userId, userName, jobText, jobUrl } = req.body;
+    const { jobText } = req.body;
     const resumeText = req.body.resumeText || null;
     const file = req.file || null;
 
+    if (!jobText || jobText.trim().length === 0) {
+      return res.status(400).json({ success: false, message: 'jobText is required' });
+    }
+    if (!resumeText && !file) {
+      return res.status(400).json({ success: false, message: 'Resume file or resumeText is required' });
+    }
+
+    // Extract resume text
+    const extractedResumeText = await extractResumeText(file, resumeText);
+    if (!extractedResumeText || extractedResumeText.trim().length < 20) {
+      return res.status(400).json({
+        success: false,
+        message: 'Could not extract readable text from resume. Please upload a valid PDF or TXT file.',
+      });
+    }
+
+    // Run deterministic parsers
+    const [jobData, resumeData] = await Promise.all([
+      ToolRegistry.executeTool('JobDescriptionParser', jobText),
+      ToolRegistry.executeTool('ResumeParser', extractedResumeText),
+    ]);
+
+    // Run keyword analysis & deterministic scoring
+    const keywordData = await ToolRegistry.executeTool('KeywordExtractor', { jobData, resumeData });
+    const baselineScore = await ToolRegistry.executeTool('MatchScorer', { jobData, resumeData, keywordData });
+
+    const targetThreshold = config.SCORE_THRESHOLD || 80;
+    const unsupportedSkills = keywordData.unsupportedSkills || [];
+    const hasUnsupported = unsupportedSkills.length > 0;
+    const isBelowThreshold = baselineScore.totalScore < targetThreshold;
+
+    // Confirmation popup required if there are genuine missing skills and score is below threshold
+    const requiresConfirmation = hasUnsupported && isBelowThreshold;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        requiresConfirmation,
+        targetThreshold,
+        baselineScore: baselineScore.totalScore,
+        breakdown: baselineScore.breakdown,
+        matchedSkills: keywordData.matchedSkills || [],
+        missingSkills: unsupportedSkills,
+        missingRequired: keywordData.missingRequired || [],
+        missingPreferred: keywordData.missingPreferred || [],
+        extractedResumeText,
+        jobData: {
+          title: jobData.title,
+          company: jobData.company,
+          skills: jobData.skills,
+        },
+        resumeData: {
+          name: resumeData.name,
+          email: resumeData.email,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('❌ Error in analyzeGaps:', error);
+    next(error);
+  }
+};
+
+/**
+ * POST /api/agent/run
+ * Main entry point: runs the full agentic pipeline with user confirmed/declined skills
+ */
+exports.runAgent = async (req, res, next) => {
+  try {
+    const { userId, userName, jobText, jobUrl, userChoice = 'none' } = req.body;
+    const resumeText = req.body.resumeText || null;
+    const file = req.file || null;
+
+    // Parse confirmedSkills and declinedSkills safely
+    let confirmedSkills = [];
+    if (req.body.confirmedSkills) {
+      try {
+        confirmedSkills = typeof req.body.confirmedSkills === 'string'
+          ? JSON.parse(req.body.confirmedSkills)
+          : req.body.confirmedSkills;
+      } catch (e) {
+        confirmedSkills = Array.isArray(req.body.confirmedSkills) ? req.body.confirmedSkills : [req.body.confirmedSkills];
+      }
+    }
+
+    let declinedSkills = [];
+    if (req.body.declinedSkills) {
+      try {
+        declinedSkills = typeof req.body.declinedSkills === 'string'
+          ? JSON.parse(req.body.declinedSkills)
+          : req.body.declinedSkills;
+      } catch (e) {
+        declinedSkills = Array.isArray(req.body.declinedSkills) ? req.body.declinedSkills : [req.body.declinedSkills];
+      }
+    }
+
     // --- Input validation ---
-    if (!jobText && !jobUrl) return res.status(400).json({ success: false, message: 'jobText or jobUrl is required' });
+    if (!jobText) return res.status(400).json({ success: false, message: 'jobText is required' });
     if (!resumeText && !file) return res.status(400).json({ success: false, message: 'Resume file or resumeText is required' });
 
     // --- Resolve or create valid Mongoose ObjectId for user ---
@@ -173,8 +283,8 @@ exports.runAgent = async (req, res, next) => {
     // --- Extract resume text ---
     const extractedResumeText = await extractResumeText(file, resumeText);
 
-    // --- Job text: use provided text or jobUrl as-is ---
-    const finalJobText = jobText || `Job URL provided: ${jobUrl}`;
+    // --- Job text ---
+    const finalJobText = jobText;
 
     // --- Check job cache ---
     const jobHash = crypto.createHash('md5').update(finalJobText).digest('hex');
@@ -183,6 +293,9 @@ exports.runAgent = async (req, res, next) => {
     // --- Create or retrieve Analysis record ---
     const analysisDoc = await Analysis.create({
       userId: validUserId,
+      confirmedSkills,
+      declinedSkills,
+      userChoice,
       status: 'running',
     });
 
@@ -190,13 +303,17 @@ exports.runAgent = async (req, res, next) => {
     console.log(`\n${'='.repeat(60)}`);
     console.log(`🤖 HireFlow AI Agent Starting`);
     console.log(`👤 User: ${userName || userId}`);
+    console.log(`🎯 User Choice: ${userChoice}`);
     console.log(`${'='.repeat(60)}\n`);
 
     const result = await agentLoop.run({
       resumeText: extractedResumeText,
       jobText: finalJobText,
-      userId,
+      userId: validUserId.toString(),
       userName: userName || 'Candidate',
+      confirmedSkills,
+      declinedSkills,
+      userChoice,
     });
 
     if (!result.success) {
@@ -219,7 +336,9 @@ exports.runAgent = async (req, res, next) => {
     }
 
     const cleanChangeLog = normalizeChangeLog(result.changeLog);
-    const cleanMissingKeywords = normalizeStringArray(result.finalScore?.missingKeywords);
+    const cleanMissingKeywords = normalizeStringArray(
+      result.finalScore?.allMissingSkills || result.finalScore?.missingCriticalSkills
+    );
     const cleanStrongAreas = normalizeStringArray(result.finalScore?.strongAreas);
     const cleanWeakAreas = normalizeStringArray(result.finalScore?.weakAreas);
 
@@ -264,6 +383,11 @@ exports.runAgent = async (req, res, next) => {
         after: result.finalScore?.breakdown?.atsScore || 0,
       },
       changeLog: cleanChangeLog,
+      stopReason: result.stopReason,
+      unsupportedSkills: result.unsupportedSkills || [],
+      confirmedSkills,
+      declinedSkills,
+      userChoice,
       status: 'completed',
     });
 
@@ -296,7 +420,6 @@ exports.runAgent = async (req, res, next) => {
         applicationId: applicationDoc._id,
         resumeId: resumeDoc._id,
         jobId: jobDoc._id,
-        // Full result for frontend display
         result: {
           jobData: result.jobData,
           resumeData: result.resumeData,
@@ -304,12 +427,21 @@ exports.runAgent = async (req, res, next) => {
           initialScore: result.initialScore,
           finalScore: result.finalScore,
           iterations: result.iterations,
-          changeLog: result.changeLog,
+          changeLog: cleanChangeLog,
+          unsupportedSkills: result.unsupportedSkills || [],
+          confirmedSkills,
+          declinedSkills,
+          userChoice,
+          stopReason: result.stopReason,
           coverLetter: result.coverLetter,
           qaResponses: result.qaResponses,
-          explanations: result.explanations,
-          suggestions: result.suggestions,
-          agentDecisions: result.agentDecisions,
+          explanations: result.explanations || {},
+          suggestions: normalizeStringArray(result.suggestions || result.explanations?.suggestions),
+          agentDecisions: (result.agentDecisions || []).map(d => ({
+            ...d,
+            message: flattenToText(d.message || d.action || ''),
+            step: flattenToText(d.step || '')
+          })),
         },
       },
     });
@@ -364,7 +496,6 @@ exports.getApplication = async (req, res, next) => {
 
 /**
  * PUT /api/agent/application/:id/approve
- * User approves the generated application
  */
 exports.approveApplication = async (req, res, next) => {
   try {
