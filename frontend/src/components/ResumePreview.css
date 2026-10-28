@@ -54,10 +54,15 @@
   padding: 3rem 3.5rem;
   background: #fff !important;
   border-radius: var(--radius-lg) !important;
-  min-height: 600px;
-  max-height: 85vh;
-  overflow-y: auto;
+  height: 650px;
+  max-height: calc(100vh - 250px);
+  min-height: 520px;
+  overflow-y: scroll !important;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
   box-shadow: 0 8px 40px rgba(0,0,0,0.3) !important;
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 #f1f5f9;
 }
 
 /* Document content uses light theme */
@@ -245,9 +250,18 @@
 
 /* Scrollbar in preview */
 .resume-preview-page::-webkit-scrollbar {
-  width: 5px;
+  width: 10px;
+}
+.resume-preview-page::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
+  margin: 6px 0;
 }
 .resume-preview-page::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 3px;
+  background: #94a3b8;
+  border-radius: 8px;
+  border: 2px solid #f1f5f9;
+}
+.resume-preview-page::-webkit-scrollbar-thumb:hover {
+  background: #6366f1;
 }

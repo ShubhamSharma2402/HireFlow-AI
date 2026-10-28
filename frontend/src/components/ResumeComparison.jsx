@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { FileText, Eye, AlertCircle, CheckCircle2, SplitSquareVertical } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { FileText, Eye, ArrowUp, ArrowDown, MoveVertical } from 'lucide-react';
 import './ResumeComparison.css';
 
 const safeStr = (val) => {
@@ -236,6 +236,8 @@ function renderRawTextDocument(rawText, changes = [], mode = 'original', highlig
 
 const ResumeComparison = ({ data }) => {
   const [highlightDiff, setHighlightDiff] = useState(true);
+  const originalPaneRef = useRef(null);
+  const optimizedPaneRef = useRef(null);
 
   const originalContent = data?.original || data?.originalText || '';
   const optimizedContent = data?.optimized || data?.optimizedText || '';
@@ -243,6 +245,15 @@ const ResumeComparison = ({ data }) => {
 
   const originalHtml = renderFormattedDocument(originalContent, changes, 'original', highlightDiff);
   const optimizedHtml = renderFormattedDocument(optimizedContent, changes, 'optimized', highlightDiff);
+
+  const scrollTo = (ref, position) => {
+    if (ref.current) {
+      ref.current.scrollTo({
+        top: position === 'top' ? 0 : ref.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
+  };
 
   return (
     <div className="resume-comparison">
@@ -252,7 +263,7 @@ const ResumeComparison = ({ data }) => {
           <FileText className="text-purple-light" size={22} />
           <div>
             <h3 className="text-base font-bold">Document Comparison</h3>
-            <p className="text-xs text-muted">Formatted document view comparing original vs ATS-optimized resume</p>
+            <p className="text-xs text-muted">Independent side-by-side scrolling with visual ATS diff highlights</p>
           </div>
         </div>
 
@@ -272,11 +283,36 @@ const ResumeComparison = ({ data }) => {
         {/* Original Resume Panel (Left) */}
         <div className="resume-sheet-wrapper">
           <div className="pane-header-bar flex justify-between items-center mb-2">
-            <span className="badge badge-red font-bold">Original Resume</span>
-            <span className="text-xs text-muted">Red highlight = Replaced or improved lines</span>
+            <div className="flex items-center gap-2">
+              <span className="badge badge-red font-bold">Original Resume</span>
+              <span className="scroll-indicator-pill">
+                <MoveVertical size={11} /> Scrollable
+              </span>
+            </div>
+            <div className="pane-scroll-nav flex items-center gap-1">
+              <button
+                type="button"
+                className="scroll-nav-btn"
+                title="Scroll original resume to top"
+                onClick={() => scrollTo(originalPaneRef, 'top')}
+              >
+                <ArrowUp size={12} /> Top
+              </button>
+              <button
+                type="button"
+                className="scroll-nav-btn"
+                title="Scroll original resume to bottom"
+                onClick={() => scrollTo(originalPaneRef, 'bottom')}
+              >
+                <ArrowDown size={12} /> End
+              </button>
+            </div>
           </div>
           <div
-            className="document-sheet-pane glass-card"
+            ref={originalPaneRef}
+            className="document-sheet-pane glass-card custom-scroll-pane"
+            tabIndex={0}
+            aria-label="Original resume document viewer"
             dangerouslySetInnerHTML={{ __html: originalHtml }}
           />
         </div>
@@ -284,11 +320,36 @@ const ResumeComparison = ({ data }) => {
         {/* Optimized Resume Panel (Right) */}
         <div className="resume-sheet-wrapper">
           <div className="pane-header-bar flex justify-between items-center mb-2">
-            <span className="badge badge-green font-bold">Optimized ATS Resume</span>
-            <span className="text-xs text-muted">Green highlight = Evidenced & confirmed improvements</span>
+            <div className="flex items-center gap-2">
+              <span className="badge badge-green font-bold">Optimized ATS Resume</span>
+              <span className="scroll-indicator-pill">
+                <MoveVertical size={11} /> Scrollable
+              </span>
+            </div>
+            <div className="pane-scroll-nav flex items-center gap-1">
+              <button
+                type="button"
+                className="scroll-nav-btn"
+                title="Scroll optimized resume to top"
+                onClick={() => scrollTo(optimizedPaneRef, 'top')}
+              >
+                <ArrowUp size={12} /> Top
+              </button>
+              <button
+                type="button"
+                className="scroll-nav-btn"
+                title="Scroll optimized resume to bottom"
+                onClick={() => scrollTo(optimizedPaneRef, 'bottom')}
+              >
+                <ArrowDown size={12} /> End
+              </button>
+            </div>
           </div>
           <div
-            className="document-sheet-pane glass-card"
+            ref={optimizedPaneRef}
+            className="document-sheet-pane glass-card custom-scroll-pane"
+            tabIndex={0}
+            aria-label="Optimized resume document viewer"
             dangerouslySetInnerHTML={{ __html: optimizedHtml }}
           />
         </div>

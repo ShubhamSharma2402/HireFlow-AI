@@ -27,11 +27,16 @@
   color: #1a1a2e !important;
   border-radius: var(--radius-md) !important;
   padding: 2.5rem 2rem;
-  min-height: 600px;
-  max-height: 80vh;
-  overflow-y: auto;
+  height: 640px;
+  max-height: calc(100vh - 280px);
+  min-height: 520px;
+  overflow-y: scroll !important;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  scrollbar-width: thin;
+  scrollbar-color: #6366f1 #f1f5f9;
 }
 
 .comp-document-sheet {
@@ -190,13 +195,63 @@ mark.doc-added {
   border-radius: 3px;
 }
 
-/* Scrollbars for sheets */
+/* Distinct, High-Visibility Independent Scrollbars for both document panes */
 .document-sheet-pane::-webkit-scrollbar {
-  width: 6px;
+  width: 10px;
+}
+.document-sheet-pane::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 8px;
+  margin: 6px 0;
 }
 .document-sheet-pane::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 4px;
+  background: #94a3b8;
+  border-radius: 8px;
+  border: 2px solid #f1f5f9;
+}
+.document-sheet-pane::-webkit-scrollbar-thumb:hover {
+  background: #6366f1;
+}
+
+/* Scroll indicator pill & navigation buttons in comparison headers */
+.scroll-indicator-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #a855f7;
+  background: rgba(124, 58, 237, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+.pane-scroll-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.scroll-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.scroll-nav-btn:hover {
+  background: var(--purple-dim);
+  color: var(--purple-light);
+  border-color: rgba(168, 85, 247, 0.4);
 }
 
 @media (max-width: 900px) {

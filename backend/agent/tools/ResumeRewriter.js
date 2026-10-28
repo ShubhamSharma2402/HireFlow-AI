@@ -1,26 +1,29 @@
 const { callLLM } = require('../../services/llmService');
 const { normalizeSkill } = require('../utils/skillNormalizer');
 
+const LEAK_REGEX = /\b(boundary\s+iterative\s+control|iterative\s+control|system\s+prompt|as\s+an\s+ai|agent\s+instructions?|developer\s+notes?|rewritten\s+(line|bullet)|optimization\s+plan)\b[:\s-]*/gi;
+
+/**
+ * Sanitizes any raw string or nested property to remove internal prompt leakage or control words.
+ */
+function cleanString(val) {
+  if (val === null || val === undefined) return '';
+  if (Array.isArray(val)) {
+    return val.map(cleanString).filter(Boolean).join('\n');
+  }
+  if (typeof val === 'object') {
+    val = val.description || val.bullet || val.text || val.name || val.title || val.skill || val.summary || val.achievement || val.certification || JSON.stringify(val);
+  }
+  if (typeof val !== 'string') val = String(val);
+  return val.replace(LEAK_REGEX, '').trim();
+}
+
 /**
  * Sanitizes all string fields in a structured resume to remove any
  * internal prompt leakage, agent control words, or meta-commentary.
  */
 function sanitizeResume(resume) {
   if (!resume) return resume;
-
-  const LEAK_REGEX = /\b(boundary\s+iterative\s+control|iterative\s+control|system\s+prompt|as\s+an\s+ai|agent\s+instructions?|developer\s+notes?|rewritten\s+(line|bullet)|optimization\s+plan)\b[:\s-]*/gi;
-
-  function cleanString(val) {
-    if (val === null || val === undefined) return '';
-    if (Array.isArray(val)) {
-      return val.map(cleanString).filter(Boolean).join('\n');
-    }
-    if (typeof val === 'object') {
-      val = val.description || val.bullet || val.text || val.name || val.title || val.skill || val.summary || val.achievement || val.certification || JSON.stringify(val);
-    }
-    if (typeof val !== 'string') val = String(val);
-    return val.replace(LEAK_REGEX, '').trim();
-  }
 
   if (resume.name) resume.name = cleanString(resume.name);
   if (resume.summary) resume.summary = cleanString(resume.summary);

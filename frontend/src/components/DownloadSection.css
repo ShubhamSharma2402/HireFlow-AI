@@ -1,36 +1,228 @@
+/* ── DownloadSection Styles ─────────────────────────────────── */
+
 .download-section {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
-.approval-banner {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
-  border: 1px solid rgba(16, 185, 129, 0.2);
+/* Header Card */
+.download-hero-card {
+  padding: 2rem 1.5rem;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(6, 182, 212, 0.05)) !important;
+  border: 1px solid rgba(168, 85, 247, 0.2) !important;
 }
 
-.btn-lg {
-  padding: 1rem 2rem;
-  font-size: 1.125rem;
-}
-
-.approved-badge {
-  padding: 1rem;
-  background: rgba(16, 185, 129, 0.1);
+.download-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.85rem;
+  background: var(--green-dim);
   border: 1px solid rgba(16, 185, 129, 0.3);
-  border-radius: 8px;
-  display: inline-block;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 0.75rem;
 }
 
-.download-grid {
-  gap: 2rem;
+.download-hero-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+  color: var(--text-main);
 }
 
-.download-grid-single {
-  grid-template-columns: 1fr;
-  max-width: 480px;
+.download-hero-desc {
+  font-size: 0.875rem;
+  max-width: 650px;
   margin: 0 auto;
 }
 
-.animate-pulse {
-  animation: pulse 2s infinite;
+.download-error-alert {
+  padding: 0.75rem 1rem;
+  background: var(--red-dim);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  color: var(--red);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* Download Cards Grid */
+.download-cards-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.download-cards-grid.has-two-cards {
+  grid-template-columns: 1fr 1fr;
+}
+
+.download-cards-grid.has-one-card {
+  grid-template-columns: 1fr;
+  max-width: 580px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.download-card {
+  padding: 2.25rem 2rem;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  align-items: center;
+  box-sizing: border-box;
+  overflow: visible !important;
+}
+
+.download-card-icon-wrap {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--purple-dim);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.download-card-icon-wrap.icon-cyan {
+  background: var(--cyan-dim);
+  border-color: rgba(6, 182, 212, 0.25);
+}
+
+.download-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text-main);
+}
+
+.download-card-desc {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  margin-bottom: 1.75rem;
+  flex: 1;
+}
+
+/* Primary Action Button - Guaranteed full visibility without clipping */
+.primary-action-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.download-resume-btn {
+  width: 100%;
+  max-width: 380px;
+  min-height: 52px;
+  height: auto !important;
+  padding: 0.9rem 1.75rem !important;
+  font-size: 1.02rem !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.65rem !important;
+  border-radius: var(--radius-sm) !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+}
+
+.download-cover-btn {
+  width: 100%;
+  max-width: 380px;
+  min-height: 52px;
+  height: auto !important;
+  padding: 0.9rem 1.75rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 600 !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.65rem !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+}
+
+.btn-text-label {
+  display: inline-block;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+/* Secondary Formats Row */
+.secondary-formats-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.format-btn {
+  padding: 0.45rem 0.85rem !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+/* Application Status Card */
+.application-status-card {
+  border: 1px solid var(--border-glass) !important;
+}
+
+.finalization-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.finalize-btn {
+  padding: 0.65rem 1.4rem !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+}
+
+.finalized-success-box {
+  background: var(--green-dim);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-md);
+}
+
+.share-footer {
+  margin-top: 1rem;
+}
+
+.share-btn {
+  color: var(--text-muted);
+}
+.share-btn:hover {
+  color: var(--purple-light);
+}
+
+@media (max-width: 768px) {
+  .download-cards-grid.has-two-cards {
+    grid-template-columns: 1fr;
+  }
+  .download-card {
+    padding: 1.75rem 1.25rem;
+  }
+  .download-resume-btn {
+    max-width: 100%;
+    font-size: 0.95rem !important;
+    padding: 0.85rem 1.25rem !important;
+  }
 }
