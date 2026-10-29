@@ -1,12 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile,
   signInWithPopup,
   GoogleAuthProvider,
+  browserLocalPersistence,
+  setPersistence,
 } from 'firebase/auth';
 import { auth } from '../firebase';
 import api from '../services/api';
@@ -19,10 +18,15 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Ensure auth session persists in browser localStorage across tabs & reloads
+    setPersistence(auth, browserLocalPersistence).catch((err) => {
+      console.warn('[Auth] Persistence setup warning:', err.message);
+    });
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
-        // Sync with MongoDB
+        // Sync with MongoDB in the background
         try {
           const token = await firebaseUser.getIdToken();
           const res = await api.post(
@@ -32,7 +36,7 @@ export const AuthProvider = ({ children }) => {
           );
           setMongoUser(res.data);
         } catch (err) {
-          console.error('[Auth] Failed to sync user with MongoDB:', err.message);
+          console.warn('[Auth] MongoDB sync notice (non-blocking):', err.message);
         }
       } else {
         setUser(null);
@@ -44,19 +48,12 @@ export const AuthProvider = ({ children }) => {
     return unsubscribe;
   }, []);
 
-  const signup = async (email, password, name) => {
-    const credential = await createUserWithEmailAndPassword(auth, email, password);
-    if (name) {
-      await updateProfile(credential.user, { displayName: name });
-    }
-    return credential;
-  };
-
-  const login = (email, password) =>
-    signInWithEmailAndPassword(auth, email, password);
-
-  const loginWithGoogle = () => {
+  const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
+    // Prompt account selection so the user can freely switch between different Google accounts
+    provider.setCustomParameters({
+      prompt: 'select_account',
+    });
     return signInWithPopup(auth, provider);
   };
 
@@ -71,7 +68,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const value = { user, mongoUser, loading, signup, login, loginWithGoogle, logout, getToken };
+  const value = { user, mongoUser, loading, loginWithGoogle, logout, getToken };
 
   return (
     <AuthContext.Provider value={value}>
