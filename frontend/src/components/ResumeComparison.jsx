@@ -98,7 +98,32 @@ const renderFormattedDocument = (resumeData, changes = [], mode = 'optimized', h
   // Header
   html += '<div class="comp-doc-header">';
   if (name) html += `<h1 class="comp-name">${name}</h1>`;
-  if (contact) html += `<p class="comp-contact">${contact}</p>`;
+  if (contact) {
+    const contactLinks = contact.split(/\s*\|\s*/).map(part => {
+      let href = null;
+      if (part.includes('@')) {
+        href = `mailto:${part.trim()}`;
+      } else if (/linkedin\.com\/in\/[^\s]+/i.test(part)) {
+        const match = part.match(/linkedin\.com\/in\/[^\s]+/i);
+        href = `https://www.${match[0].replace(/^www\./i, '')}`;
+      } else if (/github\.com\/[^\s]+/i.test(part)) {
+        const match = part.match(/github\.com\/[^\s]+/i);
+        href = `https://www.${match[0].replace(/^www\./i, '')}`;
+      } else if (/leetcode\.com\/[^\s]+/i.test(part)) {
+        const match = part.match(/leetcode\.com\/[^\s]+/i);
+        href = `https://${match[0]}`;
+      } else if (/^https?:\/\//i.test(part)) {
+        href = part.trim();
+      }
+
+      if (href) {
+        return `<a href="${href}" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">${part}</a>`;
+      }
+      return `<span>${part}</span>`;
+    }).join(' | ');
+
+    html += `<p class="comp-contact">${contactLinks}</p>`;
+  }
   html += '</div>';
 
   // Summary

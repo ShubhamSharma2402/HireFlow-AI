@@ -125,7 +125,45 @@ const ResumePreview = ({ resume, title = 'Optimized Resume' }) => {
           <div className="rp-doc-header">
             {name && <h1 className="rp-name">{name}</h1>}
             {contactParts.length > 0 && (
-              <p className="rp-contact">{contactParts.join(' | ')}</p>
+              <p className="rp-contact">
+                {contactParts.map((part, pIdx) => {
+                  let href = null;
+                  if (part.includes('@')) {
+                    href = `mailto:${part.trim()}`;
+                  } else if (/linkedin\.com\/in\/[^\s]+/i.test(part)) {
+                    const match = part.match(/linkedin\.com\/in\/[^\s]+/i);
+                    href = `https://www.${match[0].replace(/^www\./i, '')}`;
+                  } else if (/github\.com\/[^\s]+/i.test(part)) {
+                    const match = part.match(/github\.com\/[^\s]+/i);
+                    href = `https://www.${match[0].replace(/^www\./i, '')}`;
+                  } else if (/leetcode\.com\/[^\s]+/i.test(part)) {
+                    const match = part.match(/leetcode\.com\/[^\s]+/i);
+                    href = `https://${match[0]}`;
+                  } else if (/^https?:\/\//i.test(part)) {
+                    href = part.trim();
+                  }
+
+                  return (
+                    <React.Fragment key={pIdx}>
+                      {href ? (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ color: 'inherit', textDecoration: 'none' }}
+                          onMouseOver={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                          onMouseOut={(e) => e.currentTarget.style.textDecoration = 'none'}
+                        >
+                          {part}
+                        </a>
+                      ) : (
+                        <span>{part}</span>
+                      )}
+                      {pIdx < contactParts.length - 1 && <span className="rd-sep"> | </span>}
+                    </React.Fragment>
+                  );
+                })}
+              </p>
             )}
           </div>
 

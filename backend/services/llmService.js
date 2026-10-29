@@ -1,10 +1,54 @@
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
 const fetch = globalThis.fetch;
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-async function fetchGemini(prompt, systemPrompt, options = {}) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) throw new Error('Missing GEMINI_API_KEY');
+// Per-key / per-provider cooldown trackers (circuit breakers)
+const keyCooldowns = new Map();
+let groqCooldownUntil = 0;
+let openaiCooldownUntil = 0;
+
+function isKeyCoolingDown(key) {
+  if (!key) return true;
+  const until = keyCooldowns.get(key);
+  return until && Date.now() < until;
+}
+
+function setKeyCooldown(key, ms = 5 * 60 * 1000) {
+  if (key) {
+    keyCooldowns.set(key, Date.now() + ms);
+  }
+}
+
+/**
+ * Returns configured Gemini keys in order of priority:
+ * 1. GEMINI_API_KEY1 (Primary Gemini key)
+ * 2. GEMINI_API_KEY2 (Secondary Gemini key)
+ * 3. GEMINI_API_KEY  (Fallback/Alternative if present)
+ */
+function getGeminiKeys() {
+  const list = [];
+  const candidates = [
+    { id: 'GEMINI_API_KEY1', envVal: process.env.GEMINI_API_KEY1 },
+    { id: 'GEMINI_API_KEY2', envVal: process.env.GEMINI_API_KEY2 },
+    { id: 'GEMINI_API_KEY',  envVal: process.env.GEMINI_API_KEY },
+  ];
+
+  for (const c of candidates) {
+    if (c.envVal && c.envVal.trim()) {
+      const trimmed = c.envVal.trim();
+      if (!list.some(item => item.key === trimmed)) {
+        list.push({ id: c.id, key: trimmed });
+      }
+    }
+  }
+  return list;
+}
+
+async function fetchGemini(apiKey, keyLabel, prompt, systemPrompt, options = {}) {
+  if (!apiKey) throw new Error(`Missing API key for ${keyLabel}`);
 
   const models = ['gemini-2.5-flash', 'gemini-flash-latest'];
   let lastErr = null;
@@ -35,25 +79,41 @@ async function fetchGemini(prompt, systemPrompt, options = {}) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Gemini ${model} HTTP error ${response.status}: ${errorText}`);
+        const isFatal = response.status === 429 ||
+          response.status === 401 ||
+          response.status === 403 ||
+          errorText.includes('RESOURCE_EXHAUSTED') ||
+          errorText.includes('quota') ||
+          errorText.includes('RATE_LIMIT_EXCEEDED') ||
+          errorText.includes('API_KEY_INVALID');
+        const err = new Error(`Gemini [${keyLabel}] ${model} HTTP error ${response.status}: ${errorText}`);
+        err.isFatalNoRetry = isFatal;
+        err.isQuotaExhausted = isFatal;
+        throw err;
       }
 
       const data = await response.json();
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) throw new Error(`Gemini ${model} returned empty content`);
+      if (!text) throw new Error(`Gemini [${keyLabel}] ${model} returned empty content`);
 
       return {
         content: text,
-        provider: `Gemini (${model})`,
+        provider: `Gemini (${keyLabel}/${model})`,
         tokensUsed: data.usageMetadata?.totalTokenCount || 0
       };
     } catch (err) {
       lastErr = err;
-      console.warn(`[LLM] Gemini ${model} failed: ${err.message}. Trying next model...`);
+      console.warn(`[LLM] Gemini [${keyLabel}] ${model} failed: ${err.message}.`);
+      if (err.isQuotaExhausted) {
+        // Quota is account/key wide; mark this key as cooling down and break out immediately
+        setKeyCooldown(apiKey, 5 * 60 * 1000);
+        break;
+      }
     }
   }
 
-  throw lastErr || new Error('All Gemini models failed');
+  if (lastErr) throw lastErr;
+  throw new Error(`All Gemini models failed for ${keyLabel}`);
 }
 
 async function fetchGroq(prompt, systemPrompt, options = {}) {
@@ -66,7 +126,14 @@ async function fetchGroq(prompt, systemPrompt, options = {}) {
   for (const model of models) {
     try {
       const messages = [];
-      if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+      let sys = systemPrompt;
+      if (options.responseFormat === 'json_object') {
+        const fullText = `${systemPrompt || ''} ${prompt}`.toLowerCase();
+        if (!fullText.includes('json')) {
+          sys = sys ? `${sys}\nRespond with a valid JSON object.` : 'Respond with a valid JSON object.';
+        }
+      }
+      if (sys) messages.push({ role: 'system', content: sys });
       messages.push({ role: 'user', content: prompt });
 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -86,7 +153,13 @@ async function fetchGroq(prompt, systemPrompt, options = {}) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`Groq ${model} HTTP error ${response.status}: ${errorText}`);
+        const isQuotaExhausted = response.status === 429 ||
+          errorText.includes('rate_limit_exceeded') ||
+          errorText.includes('insufficient_quota');
+        const err = new Error(`Groq ${model} HTTP error ${response.status}: ${errorText}`);
+        err.isFatalNoRetry = isQuotaExhausted;
+        err.isQuotaExhausted = isQuotaExhausted;
+        throw err;
       }
 
       const data = await response.json();
@@ -100,11 +173,16 @@ async function fetchGroq(prompt, systemPrompt, options = {}) {
       };
     } catch (err) {
       lastErr = err;
-      console.warn(`[LLM] Groq ${model} failed: ${err.message}. Trying next Groq model...`);
+      console.warn(`[LLM] Groq ${model} failed: ${err.message}.`);
+      if (err.isQuotaExhausted) {
+        groqCooldownUntil = Date.now() + 5 * 60 * 1000;
+        break;
+      }
     }
   }
 
-  throw lastErr || new Error('All Groq models failed');
+  if (lastErr) throw lastErr;
+  throw new Error('All Groq models failed');
 }
 
 async function fetchOpenAI(prompt, systemPrompt, options = {}) {
@@ -112,7 +190,14 @@ async function fetchOpenAI(prompt, systemPrompt, options = {}) {
   if (!apiKey) throw new Error('Missing OPENAI_API_KEY');
 
   const messages = [];
-  if (systemPrompt) messages.push({ role: 'system', content: systemPrompt });
+  let sys = systemPrompt;
+  if (options.responseFormat === 'json_object') {
+    const fullText = `${systemPrompt || ''} ${prompt}`.toLowerCase();
+    if (!fullText.includes('json')) {
+      sys = sys ? `${sys}\nRespond with a valid JSON object.` : 'Respond with a valid JSON object.';
+    }
+  }
+  if (sys) messages.push({ role: 'system', content: sys });
   messages.push({ role: 'user', content: prompt });
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -136,6 +221,10 @@ async function fetchOpenAI(prompt, systemPrompt, options = {}) {
     const isQuotaExhausted = response.status === 429 || errorText.includes('insufficient_quota') || errorText.includes('credit_balance_exhausted');
     const err = new Error(`OpenAI HTTP error ${response.status}: ${errorText}`);
     err.isFatalNoRetry = isQuotaExhausted;
+    err.isQuotaExhausted = isQuotaExhausted;
+    if (isQuotaExhausted) {
+      openaiCooldownUntil = Date.now() + 10 * 60 * 1000;
+    }
     throw err;
   }
 
@@ -169,30 +258,54 @@ async function withRetries(fn, providerName, retries = 1) {
 
 /**
  * Robust multi-provider LLM caller.
- * Order: Gemini -> Groq -> OpenAI
- * Immediately cascades to working providers if any fail.
+ * Order:
+ * 1. GEMINI_API_KEY
+ * 2. GEMINI_API_KEY1 (if first key runs out of quota or fails)
+ * 3. GEMINI_API_KEY2 (if present)
+ * 4. Groq (if all Gemini keys fail/exhaust quota)
+ * 5. OpenAI (last resort if configured)
+ *
+ * Instant failover when quota is exhausted (no retry delay).
  */
 async function callLLM(prompt, systemPrompt, options = {}) {
-  // Provider 1: Gemini (Ultra-low latency, full JSON support)
-  if (process.env.GEMINI_API_KEY) {
+  // Provider 1: Gemini Keys in priority sequence
+  const geminiKeys = getGeminiKeys();
+  for (let i = 0; i < geminiKeys.length; i++) {
+    const { id, key } = geminiKeys[i];
+    if (isKeyCoolingDown(key)) {
+      continue; // Skip already exhausted key with 0 ms overhead
+    }
+
     try {
-      return await withRetries(() => fetchGemini(prompt, systemPrompt, options), 'Gemini');
+      return await withRetries(
+        () => fetchGemini(key, id, prompt, systemPrompt, options),
+        `Gemini [${id}]`
+      );
     } catch (geminiErr) {
-      console.warn(`[LLM] Gemini failed. Falling back to Groq. (${geminiErr.message})`);
+      if (geminiErr.isQuotaExhausted) {
+        setKeyCooldown(key, 5 * 60 * 1000);
+      }
+      const nextTarget = (i < geminiKeys.length - 1) ? geminiKeys[i + 1].id : (process.env.GROQ_API_KEY ? 'Groq' : 'OpenAI');
+      console.warn(`[LLM] ${id} failed. Falling back immediately to ${nextTarget}. (${geminiErr.message})`);
     }
   }
 
   // Provider 2: Groq (Blazing fast inference)
-  if (process.env.GROQ_API_KEY) {
+  const isGroqCoolingDown = Date.now() < groqCooldownUntil;
+  if (process.env.GROQ_API_KEY && !isGroqCoolingDown) {
     try {
       return await withRetries(() => fetchGroq(prompt, systemPrompt, options), 'Groq');
     } catch (groqErr) {
-      console.warn(`[LLM] Groq failed. Falling back to OpenAI. (${groqErr.message})`);
+      if (groqErr.isQuotaExhausted) {
+        groqCooldownUntil = Date.now() + 5 * 60 * 1000;
+      }
+      console.warn(`[LLM] Groq failed. Falling back to OpenAI if available. (${groqErr.message})`);
     }
   }
 
-  // Provider 3: OpenAI (gpt-4o-mini)
-  if (process.env.OPENAI_API_KEY) {
+  // Provider 3: OpenAI (if configured and not cooling down)
+  const isOpenaiCoolingDown = Date.now() < openaiCooldownUntil;
+  if (process.env.OPENAI_API_KEY && !isOpenaiCoolingDown) {
     try {
       return await withRetries(() => fetchOpenAI(prompt, systemPrompt, options), 'OpenAI');
     } catch (openaiErr) {
