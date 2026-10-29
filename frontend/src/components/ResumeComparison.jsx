@@ -20,8 +20,34 @@ const renderFormattedDocument = (resumeData, changes = [], mode = 'optimized', h
     return '<p class="text-muted p-4 text-center">No document content available.</p>';
   }
 
-  // If structured completeResume object
-  const isStructured = Boolean(resumeData && (resumeData.skillCategories || resumeData.name || resumeData.experience));
+  // If passed as rawText or unparsed string
+  if (typeof resumeData === 'string') {
+    if (!resumeData.trim()) {
+      return '<p class="text-muted p-4 text-center">No document content available.</p>';
+    }
+    return renderRawTextDocument(resumeData, changes, mode, highlightEnabled);
+  }
+
+  // Check if object is empty or has content
+  const hasContent = Boolean(
+    resumeData.name ||
+    resumeData.summary ||
+    (resumeData.skillCategories && resumeData.skillCategories.length > 0) ||
+    (resumeData.skills && resumeData.skills.length > 0) ||
+    (resumeData.experience && resumeData.experience.length > 0) ||
+    (resumeData.projects && resumeData.projects.length > 0) ||
+    (resumeData.education && resumeData.education.length > 0) ||
+    resumeData.rawText
+  );
+
+  if (!hasContent) {
+    return '<p class="text-muted p-4 text-center">No document content available.</p>';
+  }
+
+  // If object has rawText and lacks structured sections, use rawText renderer
+  if (resumeData.rawText && (!resumeData.skillCategories || resumeData.skillCategories.length === 0) && (!resumeData.experience || resumeData.experience.length === 0)) {
+    return renderRawTextDocument(resumeData.rawText, changes, mode, highlightEnabled);
+  }
 
   let name = safeStr(resumeData.name || '');
   let contact = [resumeData.email, resumeData.phone, resumeData.linkedin, resumeData.github, resumeData.website]
@@ -34,9 +60,9 @@ const renderFormattedDocument = (resumeData, changes = [], mode = 'optimized', h
   let certifications = Array.isArray(resumeData.certifications) ? resumeData.certifications : [];
   let achievements = Array.isArray(resumeData.achievements) ? resumeData.achievements : [];
 
-  // If passed as rawText or unparsed string
-  if (!isStructured && typeof resumeData === 'string') {
-    return renderRawTextDocument(resumeData, changes, mode, highlightEnabled);
+  // Fallback if legacy skills array exists instead of categories
+  if (skillCategories.length === 0 && Array.isArray(resumeData.skills) && resumeData.skills.length > 0) {
+    skillCategories = [{ category: 'Technical Skills', skills: resumeData.skills }];
   }
 
   // Create highlighted diff mappings if enabled
@@ -51,11 +77,11 @@ const renderFormattedDocument = (resumeData, changes = [], mode = 'optimized', h
     });
   }
 
-  const highlightText = (text, isHeading = false) => {
+  const highlightText = (text) => {
     const sText = safeStr(text);
     if (!sText || !highlightEnabled) return sText;
     const lower = sText.toLowerCase();
-    for (const [key, c] of changeMap.entries()) {
+    for (const [key] of changeMap.entries()) {
       if (lower.includes(key) || key.includes(lower)) {
         if (mode === 'original') {
           return `<mark class="doc-removed">${sText}</mark>`;
@@ -99,14 +125,6 @@ const renderFormattedDocument = (resumeData, changes = [], mode = 'optimized', h
       }
     });
     html += '</div></div>';
-  } else if (resumeData.skills && resumeData.skills.length > 0) {
-    html += '<div class="comp-section">';
-    html += '<h3 class="comp-section-title">Skills</h3>';
-    const skillsText = Array.isArray(resumeData.skills)
-      ? resumeData.skills.map(safeStr).filter(Boolean).join(', ')
-      : safeStr(resumeData.skills);
-    html += `<p class="comp-text">${highlightText(skillsText)}</p>`;
-    html += '</div>';
   }
 
   // Experience
@@ -114,13 +132,17 @@ const renderFormattedDocument = (resumeData, changes = [], mode = 'optimized', h
     html += '<div class="comp-section">';
     html += '<h3 class="comp-section-title">Experience</h3>';
     experience.forEach(exp => {
+      const title = safeStr(exp.title || '');
+      const company = safeStr(exp.company || '');
+      const duration = safeStr(exp.duration || exp.dates || '');
+      const bullets = Array.isArray(exp.bullets) ? exp.bullets : (exp.description ? [exp.description] : []);
+
       html += '<div class="comp-entry">';
       html += '<div class="comp-entry-header">';
-      html += `<span class="comp-entry-title">${safeStr(exp.title || 'Role')}</span>`;
-      if (exp.company) html += ` <span class="comp-entry-company">@ ${safeStr(exp.company)}</span>`;
-      if (exp.duration) html += ` <span class="comp-entry-date">${safeStr(exp.duration)}</span>`;
+      html += `<div><strong class="comp-entry-title">${title}</strong> <span class="comp-entry-company">— ${company}</span></div>`;
+      if (duration) html += `<span class="comp-entry-date">${duration}</span>`;
       html += '</div>';
-      const bullets = Array.isArray(exp.bullets) ? exp.bullets : (exp.bullets ? [exp.bullets] : []);
+
       if (bullets.length > 0) {
         html += '<ul class="comp-bullets">';
         bullets.forEach(b => {
@@ -138,12 +160,16 @@ const renderFormattedDocument = (resumeData, changes = [], mode = 'optimized', h
     html += '<div class="comp-section">';
     html += '<h3 class="comp-section-title">Projects</h3>';
     projects.forEach(proj => {
+      const pName = safeStr(proj.name || proj.title || '');
+      const tech = safeStr(proj.technologies || proj.tech || '');
+      const bullets = Array.isArray(proj.bullets) ? proj.bullets : (proj.description ? [proj.description] : []);
+
       html += '<div class="comp-entry">';
       html += '<div class="comp-entry-header">';
-      html += `<span class="comp-entry-title">${safeStr(proj.name || 'Project')}</span>`;
-      if (proj.technologies) html += ` <span class="comp-entry-tech">| ${safeStr(proj.technologies)}</span>`;
-      html += '</div>';
-      const bullets = Array.isArray(proj.bullets) ? proj.bullets : (proj.bullets ? [proj.bullets] : []);
+      html += `<div><strong class="comp-entry-title">${pName}</strong>`;
+      if (tech) html += ` <span class="comp-entry-tech">(${tech})</span>`;
+      html += '</div></div>';
+
       if (bullets.length > 0) {
         html += '<ul class="comp-bullets">';
         bullets.forEach(b => {
@@ -161,11 +187,16 @@ const renderFormattedDocument = (resumeData, changes = [], mode = 'optimized', h
     html += '<div class="comp-section">';
     html += '<h3 class="comp-section-title">Education</h3>';
     education.forEach(edu => {
+      const degree = safeStr(edu.degree || '');
+      const institution = safeStr(edu.institution || edu.school || '');
+      const year = safeStr(edu.year || edu.dates || '');
+      const gpa = safeStr(edu.gpa || '');
+
       html += '<div class="comp-entry">';
-      html += `<span class="comp-entry-title">${safeStr(edu.degree || '')}</span>`;
-      if (edu.institution) html += ` <span class="comp-entry-company">| ${safeStr(edu.institution)}</span>`;
-      if (edu.year) html += ` <span class="comp-entry-date">${safeStr(edu.year)}</span>`;
-      html += '</div>';
+      html += '<div class="comp-entry-header">';
+      html += `<div><strong class="comp-entry-title">${degree}</strong> <span class="comp-entry-company">— ${institution}</span></div>`;
+      if (year) html += `<span class="comp-entry-date">${year}${gpa ? ` | GPA: ${gpa}` : ''}</span>`;
+      html += '</div></div>';
     });
     html += '</div>';
   }
@@ -200,7 +231,7 @@ const renderFormattedDocument = (resumeData, changes = [], mode = 'optimized', h
  * Fallback for unparsed or raw text original resumes
  */
 function renderRawTextDocument(rawText, changes = [], mode = 'original', highlightEnabled = true) {
-  const lines = rawText.split('\n');
+  const lines = String(rawText).split('\n');
   let html = '<div class="comp-document-sheet">';
 
   lines.forEach((line, i) => {
@@ -210,12 +241,12 @@ function renderRawTextDocument(rawText, changes = [], mode = 'original', highlig
       return;
     }
 
-    if (i === 0 && trimmed.length < 50) {
+    if (i === 0 && trimmed.length < 60) {
       html += `<div class="comp-doc-header"><h1 class="comp-name">${trimmed}</h1></div>`;
       return;
     }
 
-    const isSection = /^(summary|professional summary|skills|technical skills|experience|work experience|projects|education|certifications):?$/i.test(trimmed);
+    const isSection = /^(summary|professional summary|skills|technical skills|experience|work experience|projects|education|certifications|achievements):?$/i.test(trimmed);
     if (isSection) {
       html += `<h3 class="comp-section-title">${trimmed}</h3>`;
       return;
@@ -234,14 +265,22 @@ function renderRawTextDocument(rawText, changes = [], mode = 'original', highlig
   return html;
 }
 
-const ResumeComparison = ({ data }) => {
+const ResumeComparison = ({
+  data,
+  originalResume,
+  optimizedResume,
+  changes: propChanges,
+  originalText,
+  optimizedText
+}) => {
   const [highlightDiff, setHighlightDiff] = useState(true);
   const originalPaneRef = useRef(null);
   const optimizedPaneRef = useRef(null);
 
-  const originalContent = data?.original || data?.originalText || '';
-  const optimizedContent = data?.optimized || data?.optimizedText || '';
-  const changes = data?.changes || [];
+  // Safely resolve content whether passed via data bundle or individual props
+  const originalContent = originalResume || data?.original || originalText || data?.originalText || '';
+  const optimizedContent = optimizedResume || data?.optimized || optimizedText || data?.optimizedText || '';
+  const changes = propChanges || data?.changes || [];
 
   const originalHtml = renderFormattedDocument(originalContent, changes, 'original', highlightDiff);
   const optimizedHtml = renderFormattedDocument(optimizedContent, changes, 'optimized', highlightDiff);
@@ -258,12 +297,12 @@ const ResumeComparison = ({ data }) => {
   return (
     <div className="resume-comparison">
       {/* Toolbar */}
-      <div className="comparison-toolbar flex justify-between items-center p-4 glass-card">
+      <div className="diff-toolbar">
         <div className="flex items-center gap-2">
-          <FileText className="text-purple-light" size={22} />
+          <FileText className="text-accent" size={20} />
           <div>
-            <h3 className="text-base font-bold">Document Comparison</h3>
-            <p className="text-xs text-muted">Independent side-by-side scrolling with visual ATS diff highlights</p>
+            <h3 style={{ fontSize: '0.985rem', fontWeight: 650 }}>Side-by-Side Document Comparison</h3>
+            <p className="text-xs text-muted">Original and optimized resume panes with independent scrolling controls</p>
           </div>
         </div>
 
@@ -273,44 +312,44 @@ const ResumeComparison = ({ data }) => {
             checked={highlightDiff}
             onChange={(e) => setHighlightDiff(e.target.checked)}
           />
-          <Eye size={18} className={highlightDiff ? 'text-cyan' : 'text-muted'} />
+          <Eye size={16} className={highlightDiff ? 'text-accent' : 'text-muted'} />
           <span>Highlight Changes ({changes.length})</span>
         </label>
       </div>
 
-      {/* Side-by-Side Formatted Document Sheets */}
-      <div className="comparison-grid">
+      {/* Side-by-Side Dual Pane (Grid 1fr 1fr) */}
+      <div className="side-by-side-panes">
         {/* Original Resume Panel (Left) */}
-        <div className="resume-sheet-wrapper">
-          <div className="pane-header-bar flex justify-between items-center mb-2">
-            <div className="flex items-center gap-2">
-              <span className="badge badge-red font-bold">Original Resume</span>
-              <span className="scroll-indicator-pill">
-                <MoveVertical size={11} /> Scrollable
+        <div className="pane-wrapper">
+          <div className="pane-header">
+            <div className="pane-header-left">
+              <span className="badge badge-error">Original Resume</span>
+              <span className="badge badge-neutral" style={{ fontSize: '0.72rem' }}>
+                <MoveVertical size={11} /> Independent Scroll
               </span>
             </div>
-            <div className="pane-scroll-nav flex items-center gap-1">
+            <div className="pane-controls">
               <button
                 type="button"
-                className="scroll-nav-btn"
-                title="Scroll original resume to top"
+                className="pane-scroll-btn"
+                title="Scroll to top"
                 onClick={() => scrollTo(originalPaneRef, 'top')}
               >
-                <ArrowUp size={12} /> Top
+                <ArrowUp size={11} /> Top
               </button>
               <button
                 type="button"
-                className="scroll-nav-btn"
-                title="Scroll original resume to bottom"
+                className="pane-scroll-btn"
+                title="Scroll to bottom"
                 onClick={() => scrollTo(originalPaneRef, 'bottom')}
               >
-                <ArrowDown size={12} /> End
+                <ArrowDown size={11} /> End
               </button>
             </div>
           </div>
           <div
             ref={originalPaneRef}
-            className="document-sheet-pane glass-card custom-scroll-pane"
+            className="document-sheet-pane"
             tabIndex={0}
             aria-label="Original resume document viewer"
             dangerouslySetInnerHTML={{ __html: originalHtml }}
@@ -318,36 +357,36 @@ const ResumeComparison = ({ data }) => {
         </div>
 
         {/* Optimized Resume Panel (Right) */}
-        <div className="resume-sheet-wrapper">
-          <div className="pane-header-bar flex justify-between items-center mb-2">
-            <div className="flex items-center gap-2">
-              <span className="badge badge-green font-bold">Optimized ATS Resume</span>
-              <span className="scroll-indicator-pill">
-                <MoveVertical size={11} /> Scrollable
+        <div className="pane-wrapper">
+          <div className="pane-header">
+            <div className="pane-header-left">
+              <span className="badge badge-success">Optimized ATS Resume</span>
+              <span className="badge badge-neutral" style={{ fontSize: '0.72rem' }}>
+                <MoveVertical size={11} /> Independent Scroll
               </span>
             </div>
-            <div className="pane-scroll-nav flex items-center gap-1">
+            <div className="pane-controls">
               <button
                 type="button"
-                className="scroll-nav-btn"
-                title="Scroll optimized resume to top"
+                className="pane-scroll-btn"
+                title="Scroll to top"
                 onClick={() => scrollTo(optimizedPaneRef, 'top')}
               >
-                <ArrowUp size={12} /> Top
+                <ArrowUp size={11} /> Top
               </button>
               <button
                 type="button"
-                className="scroll-nav-btn"
-                title="Scroll optimized resume to bottom"
+                className="pane-scroll-btn"
+                title="Scroll to bottom"
                 onClick={() => scrollTo(optimizedPaneRef, 'bottom')}
               >
-                <ArrowDown size={12} /> End
+                <ArrowDown size={11} /> End
               </button>
             </div>
           </div>
           <div
             ref={optimizedPaneRef}
-            className="document-sheet-pane glass-card custom-scroll-pane"
+            className="document-sheet-pane"
             tabIndex={0}
             aria-label="Optimized resume document viewer"
             dangerouslySetInnerHTML={{ __html: optimizedHtml }}

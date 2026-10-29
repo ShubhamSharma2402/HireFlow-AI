@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Copy, Eye, EyeOff, MessageSquare, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Check, Eye, EyeOff, MessageSquare } from 'lucide-react';
 import { normalizeQAList } from '../utils/qaFormat';
 import './QASection.css';
 
@@ -24,6 +24,7 @@ const defaultFallbackQA = [
 const QASection = ({ qaList }) => {
   const [practiceMode, setPracticeMode] = useState(false);
   const [openIndex, setOpenIndex] = useState(0);
+  const [copiedIndex, setCopiedIndex] = useState(null);
 
   const normalized = normalizeQAList(qaList);
   const list = normalized.length > 0 ? normalized : defaultFallbackQA;
@@ -34,84 +35,90 @@ const QASection = ({ qaList }) => {
 
   const expandAll = () => setOpenIndex(-2);
 
-  const copyAnswer = (answer, e) => {
+  const copyAnswer = (answer, index, e) => {
     e.stopPropagation();
     navigator.clipboard.writeText(answer);
-    alert('Answer copied to clipboard!');
+    setCopiedIndex(index);
+    setTimeout(() => setCopiedIndex(null), 2200);
   };
 
   const isOpen = (index) => openIndex === -2 || openIndex === index;
 
   return (
     <div className="qa-section">
-      <div className="qa-header glass-card p-4 mb-6 flex justify-between items-center">
+      <div className="qa-header">
         <div className="flex items-center gap-3">
-          <MessageSquare className="text-purple-light" size={24} />
+          <MessageSquare className="text-accent" size={22} />
           <div>
             <h3 className="text-base font-bold">Role-Specific Interview Q&A Prep</h3>
             <p className="text-xs text-muted">
-              {list.length} tailored question{list.length !== 1 ? 's' : ''} with suggested answers based on your resume and the job description.
+              {list.length} tailored question{list.length !== 1 ? 's' : ''} with suggested answers based on your resume and target job requirements.
             </p>
           </div>
         </div>
 
         <div className="flex gap-2 flex-wrap">
-          <button className="btn btn-secondary text-xs" onClick={expandAll}>
+          <button className="btn btn-secondary btn-sm" onClick={expandAll}>
             Expand All
           </button>
-          <button className="btn btn-secondary text-xs" onClick={() => setPracticeMode(!practiceMode)}>
-            {practiceMode ? <Eye size={14} /> : <EyeOff size={14} />}
-            <span>{practiceMode ? 'Exit Practice Mode' : 'Practice Mode'}</span>
+          <button
+            className={`btn btn-sm ${practiceMode ? 'btn-primary' : 'btn-secondary'}`}
+            onClick={() => setPracticeMode(!practiceMode)}
+          >
+            {practiceMode ? <EyeOff size={14} /> : <Eye size={14} />}
+            <span>Practice Mode</span>
           </button>
         </div>
       </div>
 
-      <div className="qa-list flex flex-col gap-4">
-        {list.map((qa, i) => {
-          const expanded = isOpen(i);
-          const questionText = qa.question;
-          const answerText = qa.answer;
-          const tipsText = qa.tips;
+      <div className="flex flex-col gap-3">
+        {list.map((item, index) => {
+          const isItemOpen = isOpen(index);
+          const hasCopied = copiedIndex === index;
 
           return (
-            <div key={i} className={`qa-card glass-card ${expanded ? 'open' : ''}`}>
+            <div key={index} className="qa-item-card">
               <div
-                className="qa-question p-4 cursor-pointer flex justify-between items-center"
-                onClick={() => toggleAccordion(i)}
+                className="qa-question-bar"
+                onClick={() => toggleAccordion(index)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleAccordion(index); }}
               >
-                <div className="flex items-center gap-2">
-                  <Sparkles size={16} className="text-cyan flex-shrink-0" />
-                  <h4 className="font-bold text-sm qa-question-text">{questionText}</h4>
+                <span className="qa-question-text">
+                  <span className="text-muted" style={{ marginRight: '8px' }}>Q{index + 1}.</span>
+                  {item.question}
+                </span>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    style={{ padding: '0.2rem 0.5rem', fontSize: '0.75rem' }}
+                    onClick={(e) => copyAnswer(item.answer, index, e)}
+                    title="Copy Answer"
+                  >
+                    {hasCopied ? <Check size={12} className="text-green" /> : <Copy size={12} />}
+                    <span>{hasCopied ? 'Copied' : 'Copy'}</span>
+                  </button>
+                  {isItemOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </div>
-                {expanded ? <ChevronUp size={18} className="text-purple-light" /> : <ChevronDown size={18} className="text-muted" />}
               </div>
 
-              {expanded && (
-                <div className="qa-answer p-4 border-t border-glass">
-                  {!practiceMode ? (
+              {isItemOpen && (
+                <div className="qa-answer-body">
+                  {practiceMode ? (
+                    <p className="text-muted text-sm italic" style={{ padding: '1rem 0' }}>
+                      Practice Mode Active: Formulate your answer out loud before reviewing the recommended answer.
+                    </p>
+                  ) : (
                     <>
-                      <p className="mb-4 text-sm leading-relaxed qa-answer-text">{answerText}</p>
-                      {tipsText && (
-                        <div className="tips-badge p-3 rounded mb-4 bg-card border border-glass">
-                          <strong className="text-cyan text-xs uppercase tracking-wider block mb-1">Pro Tip:</strong>
-                          <span className="text-xs text-muted">{tipsText}</span>
+                      <p className="qa-answer-text">{item.answer}</p>
+                      {item.tips && (
+                        <div className="qa-tips-box">
+                          <strong>Strategic Tip:</strong> {item.tips}
                         </div>
                       )}
-                      <button className="btn btn-secondary text-xs" onClick={(e) => copyAnswer(answerText, e)}>
-                        <Copy size={12} /> Copy Answer
-                      </button>
                     </>
-                  ) : (
-                    <div className="practice-area">
-                      <p className="text-xs text-muted italic mb-3">
-                        Practice answering out loud, then exit practice mode to compare with the AI suggested answer.
-                      </p>
-                      <textarea
-                        className="input-field text-sm"
-                        placeholder="Type your practice notes or bullet points here..."
-                        rows={4}
-                      />
-                    </div>
                   )}
                 </div>
               )}

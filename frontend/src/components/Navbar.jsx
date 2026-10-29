@@ -11,7 +11,7 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
+    const handleScroll = () => setScrolled(window.scrollY > 15);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -31,18 +31,17 @@ const Navbar = () => {
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="container navbar-container">
-        {/* Logo */}
+        {/* Brand */}
         <Link to="/" className="navbar-logo">
-          <Zap className="logo-icon" size={24} />
-          <span className="gradient-text">HireFlow AI</span>
+          <Zap className="logo-icon" size={20} />
+          <span>HireFlow AI</span>
+          <span className="brand-pill">Agentic</span>
         </Link>
 
         {/* Desktop Nav Links */}
         <div className="navbar-links desktop-only">
-          {user && <Link to="/">Home</Link>}
-          {user && <Link to="/jobs"><Briefcase size={15} /> Jobs</Link>}
-          <a href="#how-it-works">How It Works</a>
-          <a href="#features">Features</a>
+          {user && <Link to="/">Optimization Hub</Link>}
+          {user && <Link to="/jobs"><Briefcase size={14} /> Application History</Link>}
         </div>
 
         {/* Desktop Actions */}
@@ -51,15 +50,18 @@ const Navbar = () => {
             user ? (
               <div className="user-menu">
                 <div className="user-avatar">
-                  <User size={16} />
+                  {displayName.charAt(0).toUpperCase()}
                 </div>
                 <span className="user-name">{displayName}</span>
-                <button className="btn btn-secondary logout-btn" onClick={handleLogout}>
-                  <LogOut size={15} /> Logout
+                <button className="btn btn-secondary logout-btn" onClick={handleLogout} title="Sign Out">
+                  <LogOut size={13} />
+                  <span>Logout</span>
                 </button>
               </div>
             ) : (
-              <Link to="/login" className="btn btn-primary">Sign in with Google</Link>
+              <Link to="/login" className="btn btn-primary btn-sm">
+                Sign in with Google
+              </Link>
             )
           )}
         </div>
@@ -68,25 +70,24 @@ const Navbar = () => {
         <button
           className="mobile-menu-btn"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle navigation menu"
         >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="mobile-menu glass-card">
-          {user && <Link to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>}
+        <div className="mobile-menu">
+          {user && <Link to="/" onClick={() => setMobileMenuOpen(false)}>Optimization Hub</Link>}
           {user && (
             <Link to="/jobs" onClick={() => setMobileMenuOpen(false)}>
-              <Briefcase size={15} /> My Jobs
+              <Briefcase size={14} /> Application History
             </Link>
           )}
-          <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)}>How It Works</a>
-          <a href="#features" onClick={() => setMobileMenuOpen(false)}>Features</a>
           {user ? (
             <button className="btn btn-secondary w-full" onClick={handleLogout}>
-              <LogOut size={15} /> Logout
+              <LogOut size={14} /> Logout
             </button>
           ) : (
             <Link to="/login" className="btn btn-primary w-full" onClick={() => setMobileMenuOpen(false)}>

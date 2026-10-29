@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, RefreshCw, FileText } from 'lucide-react';
+import { Copy, Check, FileText } from 'lucide-react';
 import './CoverLetter.css';
 
 /**
@@ -24,6 +24,7 @@ const formatCoverLetterText = (content) => {
 const CoverLetter = ({ content }) => {
   const [text, setText] = useState('');
   const [tone, setTone] = useState('Professional');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     setText(formatCoverLetterText(content));
@@ -31,24 +32,24 @@ const CoverLetter = ({ content }) => {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(text);
-    alert('Cover letter copied to clipboard!');
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2200);
   };
 
   const handleToneChange = (newTone) => {
     setTone(newTone);
-    // Add prefix to signal tone adjustment
     const baseText = formatCoverLetterText(content);
     setText(`[Tone: ${newTone}]\n\n${baseText}`);
   };
 
   return (
     <div className="cover-letter-section">
-      <div className="toolbar glass-card mb-4 flex justify-between items-center p-4">
-        <div className="tone-selector flex gap-2">
+      <div className="cover-letter-toolbar">
+        <div className="tone-selector">
           {['Professional', 'Confident', 'Enthusiastic'].map((t) => (
             <button
               key={t}
-              className={`btn ${tone === t ? 'btn-primary' : 'btn-secondary'} text-sm`}
+              className={`btn btn-sm ${tone === t ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => handleToneChange(t)}
             >
               {t}
@@ -56,23 +57,16 @@ const CoverLetter = ({ content }) => {
           ))}
         </div>
 
-        <div className="actions flex gap-3">
-          <button className="btn btn-primary text-sm" onClick={handleCopy}>
-            <Copy size={14} /> Copy to Clipboard
+        <div className="actions">
+          <button className="btn btn-secondary btn-sm" onClick={handleCopy}>
+            {copied ? <Check size={14} className="text-green" /> : <Copy size={14} />}
+            <span>{copied ? 'Copied to Clipboard' : 'Copy Text'}</span>
           </button>
         </div>
       </div>
 
-      <div className="letter-container glass-card p-8">
-        <textarea
-          className="letter-textarea input-field"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={16}
-        />
-        <div className="letter-stats text-muted text-sm mt-4 text-right">
-          {text.split(/\s+/).filter(Boolean).length} words | {text.length} characters
-        </div>
+      <div className="cover-letter-document">
+        {text}
       </div>
     </div>
   );

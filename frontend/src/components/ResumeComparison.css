@@ -1,12 +1,14 @@
 /* ==========================================================================
    HireFlow AI — Refined Before & After Comparison CSS
    Dual-pane independent scrolling with crisp document styling.
+   Side-by-side on desktop and tablet screens.
    ========================================================================== */
 
 .resume-comparison {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  width: 100%;
 }
 
 .diff-toolbar {
@@ -22,67 +24,43 @@
   gap: var(--space-3);
 }
 
-.diff-view-mode {
+.diff-toggle-label {
   display: flex;
-  gap: var(--space-1);
-  background: var(--bg-secondary);
-  padding: 0.2rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border-light);
-}
-
-.diff-mode-btn {
-  display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.65rem;
-  font-size: 0.795rem;
-  font-weight: 550;
-  border: none;
-  background: transparent;
+  gap: 0.45rem;
+  font-size: 0.835rem;
   color: var(--text-secondary);
-  border-radius: var(--radius-xs);
+  user-select: none;
+}
+
+.diff-toggle-label input[type="checkbox"] {
+  accent-color: var(--accent-primary);
+  width: 15px;
+  height: 15px;
   cursor: pointer;
-  transition: all var(--transition-fast);
 }
 
-.diff-mode-btn:hover {
-  color: var(--text-primary);
-}
-
-.diff-mode-btn.active {
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-xs);
-}
-
-.diff-summary-badge {
-  font-size: 0.795rem;
-  font-weight: 600;
-  padding: 0.25rem 0.65rem;
-  border-radius: var(--radius-full);
-  background: var(--accent-subtle);
-  color: var(--accent-primary);
-  border: 1px solid var(--accent-border);
-}
-
-/* Side-by-Side Dual Pane */
+/* Side-by-Side Dual Pane: strictly 2 equal columns */
 .side-by-side-panes {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
+  width: 100%;
+  align-items: start;
 }
 
 .pane-wrapper {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  width: 100%;
 }
 
 .pane-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0.75rem;
+  padding: 0.55rem 0.85rem;
   background: var(--bg-surface);
   border: 1px solid var(--border-light);
   border-bottom: none;
@@ -93,12 +71,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.pane-title {
-  font-size: 0.845rem;
-  font-weight: 650;
-  color: var(--text-primary);
+  flex-wrap: wrap;
 }
 
 .pane-controls {
@@ -108,19 +81,24 @@
 }
 
 .pane-scroll-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   font-size: 0.72rem;
   font-weight: 600;
-  padding: 0.15rem 0.45rem;
+  padding: 0.2rem 0.5rem;
   background: var(--bg-secondary);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-xs);
   color: var(--text-secondary);
   cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
 .pane-scroll-btn:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
+  border-color: var(--border-strong);
 }
 
 /* Document Sheet Pane (Paper Look with Independent Scroll) */
@@ -129,15 +107,18 @@
   color: #1A1A1A !important;
   border: 1px solid var(--border-strong) !important;
   border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
-  padding: 1.75rem !important;
-  height: 640px;
-  max-height: calc(100vh - 280px);
+  padding: 1.75rem 2rem !important;
+  height: 660px;
+  max-height: calc(100vh - 270px);
   min-height: 520px;
   overflow-y: scroll !important;
   overflow-x: hidden;
   overscroll-behavior-y: contain;
   scrollbar-width: thin;
   scrollbar-color: var(--accent-primary) #F1F5F9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  line-height: 1.48 !important;
+  box-shadow: var(--shadow-sm);
 }
 
 .document-sheet-pane::-webkit-scrollbar {
@@ -154,7 +135,155 @@
   background: var(--accent-primary);
 }
 
-@media (max-width: 900px) {
+/* Sheet Inner Content Styles */
+.comp-document-sheet {
+  display: flex;
+  flex-direction: column;
+}
+
+.comp-doc-header {
+  text-align: center;
+  border-bottom: 1.5px solid #1A1A1A;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.comp-name {
+  font-size: 1.35rem !important;
+  font-weight: 750 !important;
+  color: #000000 !important;
+  letter-spacing: -0.015em;
+  margin-bottom: 0.25rem;
+}
+
+.comp-contact {
+  font-size: 0.795rem !important;
+  color: #4A5568 !important;
+  line-height: 1.4;
+}
+
+.comp-section {
+  margin-bottom: 1rem;
+}
+
+.comp-section-title {
+  font-size: 0.845rem !important;
+  font-weight: 750 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1A1A1A !important;
+  border-bottom: 1px solid #CBD5E0;
+  padding-bottom: 0.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.comp-summary {
+  font-size: 0.815rem !important;
+  line-height: 1.5 !important;
+  color: #2D3748 !important;
+}
+
+.comp-skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.comp-skill-row {
+  font-size: 0.815rem;
+  line-height: 1.5;
+  color: #2D3748;
+}
+
+.comp-skill-row strong {
+  color: #1A1A1A;
+}
+
+.comp-entry {
+  margin-bottom: 0.75rem;
+}
+
+.comp-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.2rem;
+}
+
+.comp-entry-title {
+  font-size: 0.835rem !important;
+  font-weight: 700 !important;
+  color: #1A1A1A !important;
+}
+
+.comp-entry-company {
+  font-weight: 500;
+  color: #4A5568;
+}
+
+.comp-entry-date {
+  font-size: 0.765rem !important;
+  color: #718096 !important;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.comp-entry-tech {
+  font-size: 0.765rem;
+  color: #4A5568;
+  font-style: italic;
+}
+
+.comp-bullets {
+  padding-left: 1.1rem;
+  margin: 0;
+}
+
+.comp-bullets li {
+  font-size: 0.805rem !important;
+  line-height: 1.45 !important;
+  color: #2D3748 !important;
+  margin-bottom: 0.25rem;
+}
+
+/* Raw Text Formatting Helpers */
+.comp-spacer {
+  height: 0.65rem;
+}
+
+.comp-bullet-line {
+  font-size: 0.805rem;
+  line-height: 1.48;
+  color: #2D3748;
+  padding-left: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.comp-text-line {
+  font-size: 0.815rem;
+  line-height: 1.5;
+  color: #2D3748;
+  margin-bottom: 0.25rem;
+}
+
+/* Highlight Marks */
+mark.doc-added {
+  background-color: #DEF7EC;
+  color: #03543F;
+  border-radius: 2px;
+  padding: 0.05rem 0.2rem;
+}
+
+mark.doc-removed {
+  background-color: #FDE8E8;
+  color: #9B1C1C;
+  text-decoration: line-through;
+  border-radius: 2px;
+  padding: 0.05rem 0.2rem;
+}
+
+/* Preserve side-by-side columns down to standard tablet width */
+@media (max-width: 720px) {
   .side-by-side-panes {
     grid-template-columns: 1fr;
   }
