@@ -17,14 +17,16 @@ function App() {
         <Navbar />
         <main className="main-content">
           <Routes>
-            {/* Public routes */}
+            {/* Public route: Google Login */}
             <Route path="/login" element={<Login />} />
 
-            {/* Accessible without auth (manual mode) */}
-            <Route path="/" element={<Home />} />
-            <Route path="/results" element={<Results />} />
-
-            {/* Auth-protected routes (automation mode) */}
+            {/* Auth-protected routes: Requires Google Sign-in before accessing */}
+            <Route path="/" element={
+              <ProtectedRoute><Home /></ProtectedRoute>
+            } />
+            <Route path="/results" element={
+              <ProtectedRoute><Results /></ProtectedRoute>
+            } />
             <Route path="/automation" element={
               <ProtectedRoute><Automation /></ProtectedRoute>
             } />

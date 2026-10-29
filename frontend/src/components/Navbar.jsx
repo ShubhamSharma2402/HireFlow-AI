@@ -39,7 +39,7 @@ const Navbar = () => {
 
         {/* Desktop Nav Links */}
         <div className="navbar-links desktop-only">
-          <Link to="/">Home</Link>
+          {user && <Link to="/">Home</Link>}
           {user && <Link to="/jobs"><Briefcase size={15} /> Jobs</Link>}
           <a href="#how-it-works">How It Works</a>
           <a href="#features">Features</a>
@@ -59,10 +59,7 @@ const Navbar = () => {
                 </button>
               </div>
             ) : (
-              <>
-                <Link to="/login" className="btn btn-secondary">Login</Link>
-                <Link to="/" className="btn btn-primary">Start Optimizing</Link>
-              </>
+              <Link to="/login" className="btn btn-primary">Sign in with Google</Link>
             )
           )}
         </div>
@@ -79,7 +76,7 @@ const Navbar = () => {
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="mobile-menu glass-card">
-          <Link to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>
+          {user && <Link to="/" onClick={() => setMobileMenuOpen(false)}>Home</Link>}
           {user && (
             <Link to="/jobs" onClick={() => setMobileMenuOpen(false)}>
               <Briefcase size={15} /> My Jobs
@@ -92,14 +89,9 @@ const Navbar = () => {
               <LogOut size={15} /> Logout
             </button>
           ) : (
-            <>
-              <Link to="/login" className="btn btn-secondary w-full" onClick={() => setMobileMenuOpen(false)}>
-                Login
-              </Link>
-              <Link to="/" className="btn btn-primary w-full" onClick={() => setMobileMenuOpen(false)}>
-                Start Optimizing
-              </Link>
-            </>
+            <Link to="/login" className="btn btn-primary w-full" onClick={() => setMobileMenuOpen(false)}>
+              Sign in with Google
+            </Link>
           )}
         </div>
       )}
