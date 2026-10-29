@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const pdfParse = require('pdf-parse');
+const pdfjs = require('pdf-parse/lib/pdf.js/v1.10.100/build/pdf.js');
 const crypto = require('crypto');
 
 const mongoose = require('mongoose');
@@ -91,7 +92,9 @@ const normalizeStringArray = (arr) => {
 };
 
 /**
- * Helper: Extract text from uploaded file or raw text body
+ * Helper: Extract text and embedded clickable hyperlinks from uploaded file or raw text body.
+ * Accurately extracts embedded link annotations (e.g. from LaTeX/Overleaf, Word, or Canva)
+ * so profiles like LinkedIn, GitHub, LeetCode, or personal portfolios are never lost or faked.
  */
 const extractResumeText = async (file, resumeText) => {
   if (resumeText && typeof resumeText === 'string' && resumeText.trim().length > 0) {
@@ -102,9 +105,40 @@ const extractResumeText = async (file, resumeText) => {
   const ext = path.extname(file.originalname).toLowerCase();
   if (ext === '.pdf') {
     const dataBuffer = fs.readFileSync(file.path);
-    const pdfData = await pdfParse(dataBuffer);
     if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-    return pdfData.text;
+
+    try {
+      const [pdfData, doc] = await Promise.all([
+        pdfParse(dataBuffer),
+        pdfjs.getDocument({ data: new Uint8Array(dataBuffer) })
+      ]);
+
+      const extractedLinks = [];
+      for (let i = 1; i <= doc.numPages; i++) {
+        const page = await doc.getPage(i);
+        const annots = await page.getAnnotations();
+        if (Array.isArray(annots)) {
+          annots.forEach(a => {
+            const u = a.url || a.unsafeUrl;
+            if (a.subtype === 'Link' && u) {
+              extractedLinks.push(u);
+            }
+          });
+        }
+      }
+
+      let text = pdfData.text || '';
+      const uniqueLinks = [...new Set(extractedLinks)];
+      if (uniqueLinks.length > 0) {
+        text += '\n\n' + uniqueLinks.join(' | ') + '\n';
+      }
+
+      return text.trim();
+    } catch (err) {
+      console.warn('PDF hyperlink extraction fallback to basic text parse:', err.message);
+      const pdfData = await pdfParse(dataBuffer);
+      return pdfData.text;
+    }
   } else if (ext === '.txt') {
     const text = fs.readFileSync(file.path, 'utf-8');
     if (fs.existsSync(file.path)) fs.unlinkSync(file.path);

@@ -56,11 +56,11 @@ async function run(resumeText) {
   const phoneMatch = resumeText.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
   if (phoneMatch) result.phone = phoneMatch[0];
 
-  const liMatch = resumeText.match(/linkedin\.com\/in\/[a-zA-Z0-9_-]+/i);
-  if (liMatch) result.linkedin = liMatch[0];
+  const liMatch = resumeText.match(/linkedin\.com\/in\/[a-zA-Z0-9_.-]+/i);
+  if (liMatch) result.linkedin = liMatch[0].replace(/\/+$/, '');
 
-  const ghMatch = resumeText.match(/github\.com\/[a-zA-Z0-9_-]+/i);
-  if (ghMatch) result.github = ghMatch[0];
+  const ghMatch = resumeText.match(/github\.com\/[a-zA-Z0-9_.-]+/i);
+  if (ghMatch) result.github = ghMatch[0].replace(/\/+$/, '');
 
   let currentSection = 'summary';
   let curExp = null, curEd = null, curProj = null;

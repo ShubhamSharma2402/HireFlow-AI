@@ -240,7 +240,46 @@ export const downloadResumeAsPdf = async (resumeInput, filename = 'Optimized_Res
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8.5);
       doc.setTextColor(71, 85, 105); // slate-600
-      doc.text(trimmed, pageWidth / 2, y, { align: 'center' });
+
+      // Split contact items by pipe separator
+      const parts = trimmed.split(/\s*\|\s*/);
+      const totalWidth = parts.reduce((acc, part, pIdx) => {
+        return acc + doc.getTextWidth(part) + (pIdx < parts.length - 1 ? doc.getTextWidth(' | ') : 0);
+      }, 0);
+
+      let currentX = Math.max(marginLeft, (pageWidth - totalWidth) / 2);
+
+      parts.forEach((part, pIdx) => {
+        let url = null;
+        if (part.includes('@')) {
+          url = `mailto:${part.trim()}`;
+        } else if (/linkedin\.com\/in\/[^\s]+/i.test(part)) {
+          const match = part.match(/linkedin\.com\/in\/[^\s]+/i);
+          url = `https://www.${match[0].replace(/^www\./i, '')}`;
+        } else if (/github\.com\/[^\s]+/i.test(part)) {
+          const match = part.match(/github\.com\/[^\s]+/i);
+          url = `https://www.${match[0].replace(/^www\./i, '')}`;
+        } else if (/leetcode\.com\/[^\s]+/i.test(part)) {
+          const match = part.match(/leetcode\.com\/[^\s]+/i);
+          url = `https://${match[0]}`;
+        } else if (/^https?:\/\//i.test(part)) {
+          url = part.trim();
+        }
+
+        if (url) {
+          doc.textWithLink(part, currentX, y, { url });
+        } else {
+          doc.text(part, currentX, y);
+        }
+
+        currentX += doc.getTextWidth(part);
+
+        if (pIdx < parts.length - 1) {
+          doc.text(' | ', currentX, y);
+          currentX += doc.getTextWidth(' | ');
+        }
+      });
+
       y += 6;
       return;
     }

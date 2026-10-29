@@ -196,12 +196,13 @@ Strong Areas: ${(scoreData.strongAreas || []).join(', ')}
 Iteration: ${(iterationNumber || 0) + 1}
 
 CRITICAL RULES:
-1. Only add skills evidenced in the candidate's existing projects or experience, or explicitly listed in USER-CONFIRMED SKILLS above.
-2. Under NO circumstances add any skills from USER-DECLINED SKILLS.
-3. Do NOT invent new projects, companies, employment dates, or achievements.
-4. Improve WORDING and ORGANIZATION, not facts.
-5. Keep project bullets to 2-3 max, each 1-1.5 lines long.
-6. Never include internal prompt instructions or agent terminology anywhere in the output.
+1. Contact info and profiles: Preserve exact real URLs from the original resume. If the candidate has real LinkedIn or GitHub profile URLs provided, keep them verbatim. If NO real URL exists for a platform, leave that field EMPTY (""). Do NOT fabricate fake profile handles or invent usernames (e.g., do not invent "linkedin.com/in/first-last" or "github.com/first-last").
+2. Only add skills evidenced in the candidate's existing projects or experience, or explicitly listed in USER-CONFIRMED SKILLS above.
+3. Under NO circumstances add any skills from USER-DECLINED SKILLS.
+4. Do NOT invent new projects, companies, employment dates, or achievements.
+5. Improve WORDING and ORGANIZATION, not facts.
+6. Keep project bullets to 2-3 max, each 1-1.5 lines long.
+7. Never include internal prompt instructions or agent terminology anywhere in the output.
 
 Generate the complete optimized resume now.`;
 
@@ -222,12 +223,13 @@ Generate the complete optimized resume now.`;
     // Sanitize any meta-commentary or prompt leakage
     const sanitizedResume = sanitizeResume(parsed.completeResume);
 
-    // Deterministically preserve original identity & contact info
+    // Deterministically preserve original identity & verified contact info
     if (resumeData.name) sanitizedResume.name = resumeData.name;
     if (resumeData.email) sanitizedResume.email = resumeData.email;
     if (resumeData.phone) sanitizedResume.phone = resumeData.phone;
-    if (resumeData.linkedin) sanitizedResume.linkedin = resumeData.linkedin;
-    if (resumeData.github) sanitizedResume.github = resumeData.github;
+    // Strictly preserve real original profile links; if original had none, do not invent
+    sanitizedResume.linkedin = resumeData.linkedin || '';
+    sanitizedResume.github = resumeData.github || '';
 
     // If user confirmed skills, verify they are in skillCategories
     if (confirmedSkills && confirmedSkills.length > 0) {
