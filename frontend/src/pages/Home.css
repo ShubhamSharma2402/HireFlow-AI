@@ -1,207 +1,361 @@
+/* ==========================================================================
+   HireFlow AI — Refined Home Page CSS (Linear / Stripe SaaS Style)
+   Clean typography, balanced workspace layout, purposeful cards.
+   ========================================================================== */
+
 .home-page {
-  padding-top: 80px;
+  padding-bottom: var(--space-16);
 }
 
+/* ── Hero / Workspace Header ─────────────────────────────────────────────── */
 .hero {
-  position: relative;
-  padding: 6rem 0 4rem;
-  text-align: center;
-  overflow: hidden;
+  padding: var(--space-12) 0 var(--space-8);
+  border-bottom: 1px solid var(--border-light);
+  background: linear-gradient(180deg, #FAFAF8 0%, #F5F6F2 100%);
 }
 
-.hero-background {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at 50% 50%, rgba(124, 58, 237, 0.1) 0%, rgba(10, 10, 15, 0) 50%);
-  animation: pulse 10s infinite alternate;
-  z-index: -1;
+.hero-container {
+  max-width: 780px;
+  text-align: center;
+  margin: 0 auto;
+}
+
+.hero-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 550;
+  color: var(--accent-primary);
+  background-color: var(--accent-subtle);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-4);
 }
 
 .hero h1 {
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  margin-bottom: 1.5rem;
+  font-size: 2.35rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.028em;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
 }
 
 .hero-subtitle {
-  font-size: 1.15rem;
-  color: var(--text-muted);
-  max-width: 800px;
-  margin: 0 auto 3rem;
-  line-height: 1.7;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 660px;
+  margin: 0 auto var(--space-6);
 }
 
+/* Key Metrics / Attributes Row */
 .stats-container {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin-top: 3rem;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-3);
+  max-width: 580px;
+  margin: 0 auto;
 }
 
 .stat-card {
-  padding: 1.25rem 2.5rem;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
   text-align: center;
 }
 
 .stat-card h3 {
-  font-size: 1.75rem;
-  color: var(--cyan);
-  margin-bottom: 0.25rem;
+  font-size: 1.15rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  margin-bottom: 0.15rem;
 }
 
 .stat-card p {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 500;
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
+/* ── Primary Upload / Workspace Section ──────────────────────────────────── */
 .upload-section {
-  padding: 3rem 0;
+  padding: var(--space-10) 0;
 }
 
 .upload-card {
-  max-width: 800px;
+  max-width: 780px;
   margin: 0 auto;
-  padding: 3rem 2.5rem;
+  padding: var(--space-8);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
 
-.upload-card h2 {
-  font-size: 1.85rem;
-  margin-bottom: 0.5rem;
-  text-align: center;
+.card-header-area {
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
+.card-header-area h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+}
+
+.card-header-area p {
+  font-size: 0.885rem;
+  color: var(--text-secondary);
+}
+
+/* Error Banner */
 .form-error-banner {
-  padding: 0.85rem 1.25rem;
-  background: var(--red-dim);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: var(--radius-sm);
-  color: var(--red);
-  font-size: 0.9rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--error-subtle);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius-md);
+  color: var(--error);
+  font-size: 0.865rem;
   font-weight: 500;
-  color: var(--text-main);
-  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
 }
 
+/* Upload Form */
+.upload-form {
+  display: flex;
+  flex-direction: column;
+}
+
+/* File Drop Area (Crisp, High-Feedback Workspace) */
 .file-drop-area {
-  border: 2px dashed var(--border-glass);
-  border-radius: 8px;
-  padding: 2.5rem 1.5rem;
-  text-align: center;
   position: relative;
-  background: rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+  background-color: var(--bg-primary);
+  border: 1.5px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
 }
 
 .file-drop-area:hover {
-  border-color: var(--purple-light);
-  background: rgba(124, 58, 237, 0.05);
+  background-color: var(--bg-secondary);
+  border-color: var(--accent-primary);
 }
 
 .file-drop-area input[type="file"] {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   opacity: 0;
   cursor: pointer;
-}
-
-.job-textarea {
-  font-family: inherit;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  min-height: 160px;
-  resize: vertical;
-}
-
-.file-name {
-  margin-top: 0.75rem;
-  font-weight: 600;
-  font-size: 0.88rem;
-}
-
-.submit-btn {
   width: 100%;
-  padding: 1rem;
-  font-size: 1.05rem;
-  margin-top: 1rem;
+  height: 100%;
 }
 
-.how-it-works, .features {
-  padding: 5rem 0;
-}
-
-.section-title {
-  font-size: 2.2rem;
-  margin-bottom: 0.5rem;
-}
-
-.section-subtitle {
-  color: var(--text-muted);
-  font-size: 1rem;
-  margin-bottom: 3rem;
-}
-
-.steps-container {
-  display: flex;
-  gap: 1.25rem;
-  overflow-x: auto;
-  padding-bottom: 1rem;
-}
-
-.step-card {
-  flex: 1;
-  min-width: 200px;
-  padding: 2rem 1.25rem;
-}
-
-.step-icon {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto 1.25rem;
-  background: rgba(255, 255, 255, 0.05);
+.drop-icon-box {
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--cyan);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+  box-shadow: var(--shadow-xs);
 }
 
-.feature-card {
-  padding: 1.75rem;
+.drop-primary-text {
+  font-size: 0.895rem;
+  font-weight: 550;
+  color: var(--text-primary);
+  margin-bottom: 0.2rem;
+}
+
+.drop-hint-text {
+  font-size: 0.775rem;
+  color: var(--text-muted);
+}
+
+.file-selected-badge {
+  margin-top: var(--space-3);
+  padding: 0.35rem 0.75rem;
+  background-color: var(--success-subtle);
+  border: 1px solid var(--success-border);
+  border-radius: var(--radius-full);
+  font-size: 0.815rem;
+  font-weight: 550;
+  color: var(--success);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* Job Textarea */
+.job-textarea {
+  min-height: 170px;
+  resize: vertical;
+  font-size: 0.885rem;
+  line-height: 1.6;
+}
+
+/* Submit Action Button */
+.submit-btn {
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  font-size: 0.985rem;
+  font-weight: 600;
+  margin-top: var(--space-3);
+}
+
+/* ── How it Works Section ────────────────────────────────────────────────── */
+.how-it-works {
+  padding: var(--space-12) 0;
+  border-top: 1px solid var(--border-light);
+}
+
+.section-title {
+  font-size: 1.45rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+}
+
+.section-subtitle {
+  font-size: 0.915rem;
+  color: var(--text-secondary);
+  max-width: 580px;
+  margin: 0 auto var(--space-8);
+}
+
+.steps-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-3);
+}
+
+.step-card {
+  padding: var(--space-4) var(--space-3);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  text-align: left;
+}
+
+.step-number {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-2);
+}
+
+.step-card h3 {
+  font-size: 0.895rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+}
+
+.step-card p {
+  font-size: 0.785rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* ── Features Section ────────────────────────────────────────────────────── */
+.features {
+  padding-bottom: var(--space-12);
 }
 
 .grid-cols-3 {
+  display: grid;
   grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-4);
+  margin-top: var(--space-6);
 }
 
+.feature-card {
+  padding: var(--space-5);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--transition-fast);
+}
+
+.feature-card:hover {
+  border-color: var(--border-strong);
+}
+
+.feature-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background-color: var(--accent-subtle);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--space-3);
+}
+
+.feature-card h3 {
+  font-size: 0.985rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.35rem;
+}
+
+.feature-card p {
+  font-size: 0.835rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* Responsive adjustments */
 @media (max-width: 900px) {
+  .steps-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
   .grid-cols-3 {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 600px) {
-  .grid-cols-3 {
+@media (max-width: 640px) {
+  .hero h1 {
+    font-size: 1.85rem;
+  }
+  .stats-container {
     grid-template-columns: 1fr;
   }
-  .steps-container {
-    flex-direction: column;
-  }
   .upload-card {
-    padding: 2rem 1.25rem;
+    padding: var(--space-5);
+  }
+  .steps-container {
+    grid-template-columns: 1fr;
+  }
+  .grid-cols-3 {
+    grid-template-columns: 1fr;
   }
 }

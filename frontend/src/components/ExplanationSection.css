@@ -1,44 +1,109 @@
+/* ==========================================================================
+   HireFlow AI — Refined Explanation Section CSS (Linear / Stripe SaaS Style)
+   ========================================================================== */
+
 .explanation-section {
-  position: sticky;
-  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 860px;
+  margin: 0 auto;
 }
 
 .summary-card {
-  padding: 1.5rem;
+  padding: var(--space-5);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
 }
 
-.changes-list h4 {
-  margin-bottom: 1rem;
+.summary-card h3 {
+  font-size: 0.985rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.summary-card p {
+  font-size: 0.855rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+
+.changes-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.changes-list-heading {
+  font-size: 0.775rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
   color: var(--text-muted);
+  margin-bottom: var(--space-1);
 }
 
-.change-card {
-  padding: 1rem;
-  margin-bottom: 1rem;
+.change-item-card {
+  padding: var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--transition-fast);
 }
 
-.change-header {
+.change-item-card:hover {
+  border-color: var(--border-strong);
+}
+
+.change-header-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
 }
 
-.badge-field {
-  margin-left: auto;
+.change-field-pill {
   font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent-subtle);
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-border);
+}
+
+.change-diff-box {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.diff-original {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--error-subtle);
+  border-left: 3px solid var(--error);
+  font-size: 0.825rem;
+  color: var(--text-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.diff-improved {
+  padding: 0.5rem 0.75rem;
+  background-color: var(--success-subtle);
+  border-left: 3px solid var(--success);
+  font-size: 0.825rem;
+  color: var(--text-primary);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.diff-reason {
+  font-size: 0.795rem;
   color: var(--text-muted);
-}
-
-.change-details {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 1rem;
-  border-radius: 8px;
-}
-
-.diff-view {
-  font-family: monospace;
+  font-style: italic;
+  margin-top: var(--space-1);
 }

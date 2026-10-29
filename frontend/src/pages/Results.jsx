@@ -95,83 +95,82 @@ const Results = () => {
   const totalGapsCount = unsupportedSkills.length + declinedSkills.length;
 
   const tabs = [
-    { id: 'score', label: 'Score Report', icon: <Activity size={16} /> },
-    { id: 'preview', label: 'Resume Preview', icon: <Eye size={16} /> },
-    { id: 'resume', label: 'Before & After', icon: <FileText size={16} /> },
-    { id: 'skills', label: `Skills Gap (${totalGapsCount})`, icon: <AlertTriangle size={16} /> },
-    { id: 'cover', label: 'Cover Letter', icon: <Mail size={16} /> },
-    { id: 'qa', label: 'Q&A Prep', icon: <MessageSquare size={16} /> },
-    { id: 'download', label: 'Download', icon: <Download size={16} /> },
+    { id: 'score', label: 'Score Report', icon: <Activity size={15} /> },
+    { id: 'preview', label: 'Resume Preview', icon: <Eye size={15} /> },
+    { id: 'resume', label: 'Before & After', icon: <FileText size={15} /> },
+    { id: 'explanations', label: 'Changes & Logic', icon: <CheckCircle size={15} /> },
+    {
+      id: 'skills',
+      label: 'Confirmed & Gaps',
+      icon: <AlertTriangle size={15} />,
+      badge: totalGapsCount > 0 ? totalGapsCount : undefined,
+    },
+    { id: 'cover', label: 'Cover Letter', icon: <Mail size={15} /> },
+    { id: 'qa', label: 'Interview Q&A', icon: <MessageSquare size={15} /> },
+    { id: 'download', label: 'Finalize & Export', icon: <Download size={15} /> },
   ];
 
   return (
-    <ErrorBoundary>
-      <div className="results-page">
+    <div className="results-page">
+      {/* Refined Results Header Bar */}
+      <div className="results-header-bar">
         <div className="container">
-        {/* Header */}
-        <div className="results-header fade-in-up">
-          <button className="btn btn-secondary back-btn" onClick={() => navigate('/')}>
-            <ArrowLeft size={18} /> Back
-          </button>
-          <div className="header-center">
-            <div className="success-badge">
-              <CheckCircle size={16} />
-              Optimization Complete
+          <div className="results-header-content">
+            <div className="results-title-group">
+              <button
+                className="back-btn"
+                onClick={() => navigate('/')}
+                title="Back to Optimizer"
+                aria-label="Back to Optimizer"
+              >
+                <ArrowLeft size={16} />
+              </button>
+              <div>
+                <h1 className="results-role-title">
+                  {result.jobData?.title || 'Target Role Optimization'}
+                </h1>
+                <p className="results-role-meta">
+                  {result.jobData?.company ? `${result.jobData.company} • ` : ''}
+                  ATS Match: <strong style={{ color: 'var(--text-primary)' }}>{scoreData.before} → {scoreData.after}/100</strong>
+                  {scoreImprovement > 0 && <span style={{ color: 'var(--success)', marginLeft: '6px', fontWeight: 600 }}> (+{scoreImprovement} pts)</span>}
+                </p>
+              </div>
             </div>
-            <h1>Resume <span className="gradient-text">Optimized</span></h1>
-            <p className="text-muted">
-              {iterations > 0
-                ? `Agent ran ${iterations} optimization attempt${iterations !== 1 ? 's' : ''} — `
-                : 'Resume already met the target score — '}
-              Score:{' '}
-              <span className="score-before">{scoreData.before}</span>
-              {' → '}
-              <span className="score-after">{scoreData.after}</span>
-              {scoreImprovement > 0 && (
-                <span className="score-improvement"> (+{scoreImprovement} pts)</span>
-              )}
-            </p>
+
+            <div className="results-header-actions">
+              <button className="btn btn-secondary btn-sm" onClick={() => navigate('/')}>
+                Optimize Another
+              </button>
+              <button className="btn btn-primary btn-sm" onClick={() => setActiveTab('download')}>
+                <Download size={14} /> Export Document
+              </button>
+            </div>
           </div>
-          <div className="header-spacer" />
+
+          {/* Segmented SaaS Navigation Tabs */}
+          <div className="results-tabs" role="tablist">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                className={`result-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+                {tab.badge !== undefined && (
+                  <span className="tab-badge">{tab.badge}</span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
 
-        {/* Agent Decision Log (collapsible) */}
-        {agentDecisions.length > 0 && (
-          <details className="agent-log glass-card fade-in-up">
-            <summary className="agent-log-summary">
-              🤖 Agent Decision Log ({agentDecisions.length} steps)
-            </summary>
-            <div className="agent-log-body">
-              {agentDecisions.map((d, i) => (
-                <div key={i} className="agent-decision-item">
-                  <span className="decision-step">{toSafeString(d.step)}</span>
-                  <span className="decision-msg">{toSafeString(d.message || d.action)}</span>
-                  {d.score !== undefined && (
-                    <span className="decision-score">Score: {d.score}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </details>
-        )}
-
-        {/* Tabs */}
-        <div className="tabs-container fade-in-up">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              className={`tab-btn ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              <span className="tab-inner">
-                {tab.icon} {tab.label}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Content */}
-        <div className="tab-content fade-in-up">
+      {/* Main Tab Content */}
+      <div className="container results-tab-content">
+        <ErrorBoundary>
           {activeTab === 'score' && (
             <ScoreVisualizer
               score={scoreData}
@@ -179,25 +178,33 @@ const Results = () => {
               atsIssues={scoreData.atsIssues}
               stopReason={stopReason}
               iterations={iterations}
+              agentDecisions={agentDecisions}
             />
           )}
 
           {activeTab === 'preview' && (
             <ResumePreview
-              resume={improvedResume}
-              title="Optimized Resume"
+              resume={improvedResume || resumeData.optimized || resumeData.original}
+              title={`Optimized Resume — ${result.jobData?.title || 'Target Role'}`}
             />
           )}
 
           {activeTab === 'resume' && (
-            <div className="resume-tab-layout">
-              <ResumeComparison data={resumeData} />
-              <ExplanationSection
-                changes={resumeData.changes}
-                explanations={explanationsData}
-                overallSummary={explanationsData.overallSummary}
-              />
-            </div>
+            <ResumeComparison
+              originalResume={resumeData.original}
+              optimizedResume={resumeData.optimized}
+              changes={resumeData.changes}
+              originalText={resumeData.originalText}
+              optimizedText={resumeData.optimizedText}
+            />
+          )}
+
+          {activeTab === 'explanations' && (
+            <ExplanationSection
+              changes={resumeData.changes}
+              explanations={explanationsData}
+              overallSummary={result.explanations?.overallSummary || ''}
+            />
           )}
 
           {activeTab === 'skills' && (
@@ -211,11 +218,18 @@ const Results = () => {
           )}
 
           {activeTab === 'cover' && (
-            <CoverLetter content={coverLetterData} />
+            <CoverLetter
+              content={coverLetterData}
+              jobData={result.jobData}
+              resumeData={resumeData.optimized || resumeData.original}
+            />
           )}
 
           {activeTab === 'qa' && (
-            <QASection qaList={qaData} />
+            <QASection
+              qaList={qaData}
+              jobData={result.jobData}
+            />
           )}
 
           {activeTab === 'download' && (
@@ -225,10 +239,9 @@ const Results = () => {
               applicationId={responseData.applicationId}
             />
           )}
-        </div>
+        </ErrorBoundary>
       </div>
     </div>
-    </ErrorBoundary>
   );
 };
 

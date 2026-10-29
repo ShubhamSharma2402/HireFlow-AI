@@ -1,267 +1,208 @@
-/* ── ResumePreview Component Styles ─────────────────────────── */
+/* ==========================================================================
+   HireFlow AI — Refined Resume Document Preview & Comparison CSS
+   Paper-like typography, crisp margins, independent scrolling sidebars.
+   ========================================================================== */
 
 .resume-preview-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  max-width: 860px;
+  margin: 0 auto;
 }
 
 .resume-preview-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border-glass);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
-  gap: 1rem;
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-xs);
 }
 
 .rpt-left {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--space-2);
 }
 
 .rpt-title {
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: var(--text-main);
+  font-size: 0.925rem;
+  font-weight: 650;
+  color: var(--text-primary);
 }
 
 .rpt-badge {
   font-size: 0.72rem;
-  background: var(--purple-dim);
-  color: var(--purple-light);
-  border: 1px solid rgba(168, 85, 247, 0.25);
-  padding: 0.2rem 0.6rem;
-  border-radius: var(--radius-full);
   font-weight: 600;
-  letter-spacing: 0.03em;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--success-subtle);
+  color: var(--success);
+  border: 1px solid var(--success-border);
 }
 
-.rp-error-banner {
-  padding: 0.75rem 1rem;
-  background: var(--red-dim);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: var(--radius-sm);
-  color: var(--red);
-  font-size: 0.875rem;
-}
-
-/* Document Page */
+/* Paper-like Resume Document */
 .resume-preview-page {
-  padding: 3rem 3.5rem;
-  background: #fff !important;
-  border-radius: var(--radius-lg) !important;
+  background: #FFFFFF !important;
+  color: #1A1A1A !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-sm) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  padding: 2.25rem 2.5rem !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  line-height: 1.45 !important;
   height: 650px;
   max-height: calc(100vh - 250px);
-  min-height: 520px;
   overflow-y: scroll !important;
-  overflow-x: hidden;
   overscroll-behavior-y: contain;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.3) !important;
   scrollbar-width: thin;
-  scrollbar-color: #6366f1 #f1f5f9;
+  scrollbar-color: var(--accent-primary) #F1F5F9;
 }
 
-/* Document content uses light theme */
-.rp-doc {
-  color: #1a1a2e;
-  font-family: 'Georgia', 'Times New Roman', serif;
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-.rp-doc-header {
-  text-align: center;
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #1a1a2e;
-}
-
-.rp-name {
-  font-size: 1.6rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: #1a1a2e;
-  margin-bottom: 0.3rem;
-  font-family: 'Inter', 'Helvetica', sans-serif;
-}
-
-.rp-contact {
-  font-size: 0.82rem;
-  color: #444;
-  font-family: 'Inter', 'Helvetica', sans-serif;
-  margin: 0;
-}
-
-/* Sections */
-.rp-section {
-  margin-bottom: 1.1rem;
-}
-
-.rp-section-title {
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #1a1a2e;
-  border-bottom: 1.5px solid #1a1a2e;
-  padding-bottom: 0.2rem;
-  margin-bottom: 0.6rem;
-  font-family: 'Inter', 'Helvetica', sans-serif;
-}
-
-/* Skills */
-.rp-skills-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
-
-.rp-skill-row {
-  display: flex;
-  gap: 0.4rem;
-  font-size: 0.82rem;
-  line-height: 1.5;
-  font-family: 'Inter', 'Helvetica', sans-serif;
-}
-
-.rp-skill-category {
-  font-weight: 700;
-  color: #1a1a2e;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.rp-skill-list {
-  color: #333;
-}
-
-/* Summary */
-.rp-summary {
-  font-size: 0.85rem;
-  line-height: 1.65;
-  color: #333;
-  font-family: 'Inter', 'Helvetica', sans-serif;
-  margin: 0;
-}
-
-/* Entries (experience, projects) */
-.rp-entry {
-  margin-bottom: 0.75rem;
-}
-
-.rp-entry-header {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-bottom: 0.25rem;
-  font-family: 'Inter', 'Helvetica', sans-serif;
-}
-
-.rp-entry-title {
-  font-weight: 700;
-  font-size: 0.87rem;
-  color: #1a1a2e;
-}
-
-.rp-entry-company {
-  font-size: 0.85rem;
-  color: #444;
-}
-
-.rp-entry-tech {
-  font-size: 0.82rem;
-  color: #555;
-  font-style: italic;
-}
-
-.rp-entry-date {
-  margin-left: auto;
-  font-size: 0.8rem;
-  color: #666;
-  white-space: nowrap;
-}
-
-.rp-gpa {
-  font-size: 0.8rem;
-  color: #444;
-  margin-left: 0.25rem;
-}
-
-.rp-entry-links {
-  display: flex;
-  gap: 0.5rem;
-  margin-left: 0.5rem;
-}
-
-.rp-link {
-  font-size: 0.78rem;
-  color: #2563eb;
-  text-decoration: underline;
-}
-
-/* Bullets */
-.rp-bullets {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.rp-bullets li {
-  font-size: 0.83rem;
-  line-height: 1.55;
-  color: #333;
-  padding-left: 1rem;
-  position: relative;
-  margin-bottom: 0.15rem;
-  font-family: 'Inter', 'Helvetica', sans-serif;
-}
-
-.rp-bullets li::before {
-  content: '•';
-  position: absolute;
-  left: 0;
-  color: #555;
-}
-
-/* Raw text fallback */
-.resume-raw-text {
-  white-space: pre-wrap;
-  font-family: 'Courier New', monospace;
-  font-size: 0.82rem;
-  line-height: 1.6;
-  color: #1a1a2e;
-}
-
-/* Empty state */
-.resume-preview-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-  text-align: center;
-  gap: 0.5rem;
-}
-
-/* Scrollbar in preview */
 .resume-preview-page::-webkit-scrollbar {
-  width: 10px;
+  width: 9px;
+  background-color: #F1F5F9;
 }
-.resume-preview-page::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 8px;
-  margin: 6px 0;
-}
+
 .resume-preview-page::-webkit-scrollbar-thumb {
-  background: #94a3b8;
-  border-radius: 8px;
-  border: 2px solid #f1f5f9;
+  background-color: #94A3B8;
+  border-radius: 4px;
 }
+
 .resume-preview-page::-webkit-scrollbar-thumb:hover {
-  background: #6366f1;
+  background-color: var(--accent-primary);
+}
+
+.resume-raw-text {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  color: #2D3748;
+}
+
+/* Document Structure Header */
+.rd-header {
+  text-align: center;
+  border-bottom: 1.5px solid #1A1A1A;
+  padding-bottom: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.rd-name {
+  font-size: 1.55rem !important;
+  font-weight: 750 !important;
+  color: #000000 !important;
+  letter-spacing: -0.015em;
+  margin-bottom: 0.35rem;
+}
+
+.rd-contact {
+  font-size: 0.825rem !important;
+  color: #4A5568 !important;
+}
+
+.rd-contact-item {
+  color: #2D3748 !important;
+}
+
+.rd-sep {
+  margin: 0 0.35rem;
+  color: #A0AEC0;
+}
+
+/* Document Sections */
+.rd-section {
+  margin-bottom: 1.2rem;
+}
+
+.rd-section-title {
+  font-size: 0.895rem !important;
+  font-weight: 750 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #1A1A1A !important;
+  border-bottom: 1px solid #CBD5E0;
+  padding-bottom: 0.2rem;
+  margin-bottom: 0.55rem;
+}
+
+.rd-text {
+  font-size: 0.845rem !important;
+  line-height: 1.5 !important;
+  color: #2D3748 !important;
+}
+
+/* Skills Categories */
+.rd-skill-row {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  margin-bottom: 0.3rem;
+  color: #2D3748;
+}
+
+.rd-skill-cat {
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+.rd-skill-list {
+  color: #2D3748;
+}
+
+/* Entry (Experience & Projects) */
+.rd-entry {
+  margin-bottom: 0.85rem;
+}
+
+.rd-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.2rem;
+}
+
+.rd-entry-title {
+  font-size: 0.875rem !important;
+  font-weight: 700 !important;
+  color: #1A1A1A !important;
+}
+
+.rd-entry-company {
+  font-weight: 500;
+  color: #4A5568;
+}
+
+.rd-entry-date {
+  font-size: 0.795rem !important;
+  color: #718096 !important;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.rd-entry-tech {
+  font-size: 0.795rem;
+  color: #4A5568;
+  font-style: italic;
+  margin-bottom: 0.25rem;
+}
+
+.rd-bullets {
+  padding-left: 1.15rem;
+  margin: 0;
+}
+
+.rd-bullet {
+  font-size: 0.835rem !important;
+  line-height: 1.48 !important;
+  color: #2D3748 !important;
+  margin-bottom: 0.25rem;
+}
+
+.resume-preview-empty {
+  padding: var(--space-12);
+  text-align: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
 }

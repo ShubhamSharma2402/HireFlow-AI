@@ -1,136 +1,188 @@
+/* ==========================================================================
+   HireFlow AI — Refined Navigation Bar (Linear / Stripe SaaS Style)
+   ========================================================================== */
+
 .navbar {
-  position: fixed;
+  position: sticky;
   top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 1000;
-  padding: 1.5rem 0;
-  transition: all 0.3s ease;
+  z-index: 50;
+  background-color: rgba(250, 250, 248, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-light);
+  height: 56px;
+  display: flex;
+  align-items: center;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .navbar.scrolled {
-  padding: 1rem 0;
-  background: rgba(10, 10, 15, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-glass);
+  background-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 2px rgba(25, 27, 25, 0.04);
 }
 
 .navbar-container {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.navbar-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  font-size: 1.25rem;
-  font-weight: 700;
-}
-
-.logo-icon {
-  color: var(--purple-light);
-  fill: var(--purple-light);
-}
-
-.navbar-links {
-  display: flex;
-  gap: 2rem;
-}
-
-.navbar-links a {
-  color: var(--text-muted);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s;
-}
-
-.navbar-links a:hover {
-  color: var(--text-main);
-}
-
-.mobile-menu-btn {
-  display: none;
-  background: none;
-  border: none;
-  color: var(--text-main);
-  cursor: pointer;
-}
-
-.mobile-menu {
-  position: absolute;
-  top: 100%;
-  left: 1rem;
-  right: 1rem;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-  margin-top: 0.5rem;
-}
-
-.mobile-menu a {
-  color: var(--text-main);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 1.1rem;
-}
-
-.w-full {
   width: 100%;
 }
 
-@media (max-width: 768px) {
-  .desktop-only {
-    display: none;
-  }
-  .mobile-menu-btn {
-    display: block;
-  }
+/* Brand */
+.navbar-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.98rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  text-decoration: none;
+  letter-spacing: -0.02em;
 }
 
-/* -- Auth User Menu -- */
+.navbar-logo:hover {
+  color: var(--text-primary);
+}
+
+.navbar-logo .logo-icon {
+  color: var(--accent-primary);
+  display: flex;
+}
+
+.navbar-logo .brand-pill {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background-color: var(--accent-subtle);
+  color: var(--accent-primary);
+  padding: 0.15rem 0.4rem;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--accent-border);
+  margin-left: 0.25rem;
+}
+
+/* Links */
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.navbar-links a {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.2rem;
+  position: relative;
+  transition: color var(--transition-fast);
+}
+
+.navbar-links a:hover {
+  color: var(--text-primary);
+}
+
+/* Actions */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .user-menu {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--space-3);
+  padding: 0.25rem 0.35rem 0.25rem 0.75rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-xs);
 }
 
 .user-avatar {
-  width: 32px;
-  height: 32px;
-  background: rgba(124,58,237,0.2);
-  border: 1px solid rgba(124,58,237,0.4);
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
+  background-color: var(--accent-subtle);
+  color: var(--accent-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--purple-light);
-  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .user-name {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  max-width: 120px;
+  font-size: 0.84rem;
+  font-weight: 550;
+  color: var(--text-primary);
+  max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .logout-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.4rem 0.875rem;
-  font-size: 0.85rem;
+  padding: 0.35rem 0.65rem !important;
+  font-size: 0.78rem !important;
+  border-radius: var(--radius-full) !important;
+  border: 1px solid var(--border-light) !important;
+  background: transparent !important;
+  color: var(--text-secondary) !important;
 }
 
-.navbar-links a {
+.logout-btn:hover {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Mobile Toggle */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.mobile-menu {
+  position: absolute;
+  top: 56px;
+  left: 0;
+  right: 0;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-light);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-4);
   display: flex;
-  align-items: center;
-  gap: 0.3rem;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.mobile-menu a {
+  padding: var(--space-2) 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mobile-menu a:hover {
+  color: var(--text-primary);
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .mobile-menu-btn {
+    display: block;
+  }
 }

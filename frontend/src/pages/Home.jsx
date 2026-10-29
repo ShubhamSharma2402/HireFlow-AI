@@ -51,7 +51,7 @@ const Home = () => {
       setAnalyzing(false);
 
       if (res && res.data) {
-        const { requiresConfirmation, missingSkills, baselineScore, targetThreshold } = res.data;
+        const { requiresConfirmation, missingSkills } = res.data;
 
         // If missing skills were detected requiring user decision, display the prominent modal
         if (requiresConfirmation && missingSkills && missingSkills.length > 0) {
@@ -146,54 +146,51 @@ const Home = () => {
 
       {loading && <AgentProgress onCancel={() => setLoading(false)} />}
 
-      {/* Hero Section */}
+      {/* Hero / Header Section */}
       <section className="hero">
-        <div className="hero-background" />
-        <div className="container hero-container fade-in-up">
-          <div className="badge badge-purple mb-4">
-            <Sparkles size={14} className="text-purple-light" /> Genuinely Agentic • ATS Target 80 • Factual Evidence
+        <div className="container hero-container">
+          <div className="hero-tag-badge">
+            <Sparkles size={13} />
+            <span>Agentic Resume Optimization • ATS Target 80</span>
           </div>
-          <h1>
-            Transform Your Resume for <br />
-            <span className="gradient-text">Your Target Role</span>
-          </h1>
+
+          <h1>Tailor Your Resume to Any Target Role</h1>
           <p className="hero-subtitle">
-            Upload your resume and paste your target job description. Our bounded AI agent performs
-            full-document rewriting, intelligent skill categorization, and evidence-grounded optimization
-            without fabricating qualifications.
+            Upload your resume and paste the job description. Our bounded AI agent optimizes
+            structure, integrates missing evidence-backed keywords, and re-scores your profile to maximize recruiter impact.
           </p>
 
           <div className="stats-container">
-            <div className="stat-card glass-card">
+            <div className="stat-card">
               <h3>80 pts</h3>
-              <p>Target ATS Threshold</p>
+              <p>Target ATS Score</p>
             </div>
-            <div className="stat-card glass-card">
+            <div className="stat-card">
               <h3>Bounded</h3>
-              <p>Max 2 Rewrite Attempts</p>
+              <p>Max 2 Iterations</p>
             </div>
-            <div className="stat-card glass-card">
-              <h3>Truthful</h3>
+            <div className="stat-card">
+              <h3>Factual</h3>
               <p>User-Confirmed Skills</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Primary Optimization Workflow */}
+      {/* Primary Workspace / Upload Card */}
       <section className="upload-section">
         <div className="container">
-          <div className="upload-card glass-card fade-in-up">
-            <div className="card-header-area text-center mb-6">
-              <h2>Resume Optimization Session</h2>
-              <p className="text-muted">
+          <div className="upload-card">
+            <div className="card-header-area">
+              <h2>Optimization Workspace</h2>
+              <p>
                 Provide your existing resume and target job requirements to begin the optimization loop.
               </p>
             </div>
 
             {formError && (
-              <div className="form-error-banner flex items-center gap-2 mb-6">
-                <AlertCircle size={18} className="text-red flex-shrink-0" />
+              <div className="form-error-banner">
+                <AlertCircle size={18} className="flex-shrink-0" />
                 <span>{formError}</span>
               </div>
             )}
@@ -211,26 +208,30 @@ const Home = () => {
               </div>
 
               <div className="form-group">
-                <label>Resume (PDF or TXT) <span className="text-purple">*</span></label>
+                <label>Resume File (PDF or TXT) *</label>
                 <div className="file-drop-area">
-                  <Upload size={32} className="text-muted mb-2" />
-                  <p>Drag & drop your resume file or click to browse</p>
-                  <p className="text-muted text-xs mt-1">Accepts PDF and TXT (Max 10MB)</p>
+                  <div className="drop-icon-box">
+                    <Upload size={20} />
+                  </div>
+                  <span className="drop-primary-text">
+                    {formData.resumeFile ? formData.resumeFile.name : 'Choose a file or drag & drop here'}
+                  </span>
+                  <span className="drop-hint-text">Supported formats: PDF or Plain Text (up to 10MB)</span>
                   <input
                     type="file"
                     accept=".pdf,.txt"
                     onChange={(e) => setFormData({ ...formData, resumeFile: e.target.files[0] })}
                   />
                   {formData.resumeFile && (
-                    <p className="file-name text-green flex items-center justify-center gap-1 mt-2">
-                      <CheckCircle size={15} /> {formData.resumeFile.name}
-                    </p>
+                    <div className="file-selected-badge">
+                      <CheckCircle size={14} /> File attached ready for parsing
+                    </div>
                   )}
                 </div>
               </div>
 
               <div className="form-group">
-                <label>Target Job Description <span className="text-purple">*</span></label>
+                <label>Target Job Description *</label>
                 <textarea
                   className="input-field job-textarea"
                   placeholder="Paste the full job description here (title, requirements, responsibilities, technical qualifications)..."
@@ -248,13 +249,13 @@ const Home = () => {
               >
                 {analyzing ? (
                   <>
-                    <Loader2 size={20} className="spin" />
-                    Analyzing Skill Gaps...
+                    <Loader2 size={18} className="spin" />
+                    <span>Analyzing Requirements & Skill Gaps...</span>
                   </>
                 ) : (
                   <>
-                    <Brain size={20} />
-                    Start Optimization Session
+                    <Brain size={18} />
+                    <span>Start Optimization Session</span>
                   </>
                 )}
               </button>
@@ -264,91 +265,103 @@ const Home = () => {
       </section>
 
       {/* How the Agent Works */}
-      <section id="how-it-works" className="how-it-works container">
-        <h2 className="section-title text-center">How the Optimization Agent Works</h2>
-        <p className="section-subtitle text-center">
-          A disciplined, bounded decision loop that respects candidate facts while maximizing ATS match.
-        </p>
+      <section id="how-it-works" className="how-it-works">
+        <div className="container">
+          <div className="text-center">
+            <h2 className="section-title">How the Optimization Agent Works</h2>
+            <p className="section-subtitle">
+              A disciplined, bounded decision loop that respects candidate facts while maximizing ATS match.
+            </p>
+          </div>
 
-        <div className="steps-container">
-          {[
-            {
-              icon: <FileText />,
-              title: '1. Parse & Check Gaps',
-              desc: 'Extracts skills across entire resume and job description to identify genuine gaps.'
-            },
-            {
-              icon: <Target />,
-              title: '2. Confirm Skills',
-              desc: 'Prompts you to confirm whether you possess missing skills before rewriting.'
-            },
-            {
-              icon: <RefreshCw />,
-              title: '3. Full Rewrite',
-              desc: 'Rewrites complete resume with categorized skills and concise action bullets.'
-            },
-            {
-              icon: <Shield />,
-              title: '4. Validate & Score',
-              desc: 'Enforces factual integrity and re-scores against target threshold (80).'
-            },
-            {
-              icon: <CheckCircle />,
-              title: '5. Deliver & Export',
-              desc: 'Selects the best valid candidate with real PDF export, cover letter, and Q&A prep.'
-            },
-          ].map((step, i) => (
-            <div key={i} className="step-card glass-card text-center">
-              <div className="step-icon">{step.icon}</div>
-              <h3>{step.title}</h3>
-              <p className="text-muted">{step.desc}</p>
-            </div>
-          ))}
+          <div className="steps-container">
+            {[
+              {
+                step: '01',
+                title: 'Parse & Gap Check',
+                desc: 'Extracts skills across entire resume and job description to identify genuine gaps.'
+              },
+              {
+                step: '02',
+                title: 'Confirm Skills',
+                desc: 'Prompts you to confirm whether you possess missing skills before rewriting.'
+              },
+              {
+                step: '03',
+                title: 'Full Rewrite',
+                desc: 'Rewrites complete resume with categorized skills and concise action bullets.'
+              },
+              {
+                step: '04',
+                title: 'Validate & Score',
+                desc: 'Enforces factual integrity and re-scores against target threshold (80).'
+              },
+              {
+                step: '05',
+                title: 'Deliver & Export',
+                desc: 'Selects the best valid candidate with real PDF export, cover letter, and Q&A prep.'
+              },
+            ].map((s, i) => (
+              <div key={i} className="step-card">
+                <div className="step-number">{s.step}</div>
+                <h3>{s.title}</h3>
+                <p>{s.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Features */}
-      <section id="features" className="features container mb-20">
-        <h2 className="section-title text-center">Engineered for ATS & Recruiter Precision</h2>
-        <div className="grid grid-cols-3">
-          {[
-            {
-              icon: <Target className="text-cyan" size={32} />,
-              title: 'Evidence-Aware Mapping',
-              desc: 'Skills are only integrated if backed by resume evidence or explicit user confirmation.'
-            },
-            {
-              icon: <Layers className="text-purple" size={32} />,
-              title: 'Intelligent Categorization',
-              desc: 'Organizes skills under standard headings (Frontend, Backend, Databases) rather than dumping keywords.'
-            },
-            {
-              icon: <FileText className="text-green" size={32} />,
-              title: 'Action-Oriented Bullets',
-              desc: 'Converts weak descriptions into concise 1–1.5 line bullets: Action verb + approach + verifiable outcome.'
-            },
-            {
-              icon: <MessageSquare className="text-yellow" size={32} />,
-              title: 'Tailored Cover Letter & Q&A',
-              desc: 'Generates role-aligned cover letters and interview prep based strictly on candidate facts.'
-            },
-            {
-              icon: <RefreshCw className="text-orange" size={32} />,
-              title: 'Bounded Decision Loop',
-              desc: 'Target score threshold (80) and max 2 attempts prevent hallucination loops and wasted calls.'
-            },
-            {
-              icon: <History className="text-cyan" size={32} />,
-              title: 'Selectable Text PDF Export',
-              desc: 'Download clean, single-column, ATS-friendly PDFs with verified font and layout rendering.'
-            },
-          ].map((f, i) => (
-            <div key={i} className="feature-card glass-card">
-              <div className="mb-4">{f.icon}</div>
-              <h3 className="mb-2">{f.title}</h3>
-              <p className="text-muted">{f.desc}</p>
-            </div>
-          ))}
+      <section id="features" className="features">
+        <div className="container">
+          <div className="text-center">
+            <h2 className="section-title">Engineered for ATS & Recruiter Precision</h2>
+            <p className="section-subtitle">
+              Built to pass automated screening while maintaining honest candidate credentials.
+            </p>
+          </div>
+
+          <div className="grid-cols-3">
+            {[
+              {
+                icon: <Target size={18} />,
+                title: 'Evidence-Aware Mapping',
+                desc: 'Skills are only integrated if backed by resume evidence or explicit user confirmation.'
+              },
+              {
+                icon: <Layers size={18} />,
+                title: 'Intelligent Categorization',
+                desc: 'Organizes skills under standard headings (Frontend, Backend, Databases) rather than dumping keywords.'
+              },
+              {
+                icon: <FileText size={18} />,
+                title: 'Action-Oriented Bullets',
+                desc: 'Converts weak descriptions into concise 1–1.5 line bullets: Action verb + approach + verifiable outcome.'
+              },
+              {
+                icon: <MessageSquare size={18} />,
+                title: 'Tailored Cover Letter & Q&A',
+                desc: 'Generates role-aligned cover letters and interview prep based strictly on candidate facts.'
+              },
+              {
+                icon: <RefreshCw size={18} />,
+                title: 'Bounded Decision Loop',
+                desc: 'Target score threshold (80) and max 2 attempts prevent hallucination loops and wasted calls.'
+              },
+              {
+                icon: <History size={18} />,
+                title: 'Selectable Text PDF Export',
+                desc: 'Download clean, single-column, ATS-friendly PDFs with verified font and layout rendering.'
+              },
+            ].map((f, i) => (
+              <div key={i} className="feature-card">
+                <div className="feature-icon-box">{f.icon}</div>
+                <h3>{f.title}</h3>
+                <p>{f.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
     </div>

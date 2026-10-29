@@ -1,49 +1,74 @@
+/* ==========================================================================
+   HireFlow AI — Refined QA Section Component CSS
+   ========================================================================== */
+
 .qa-section {
-  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 860px;
   margin: 0 auto;
 }
 
-.qa-card {
+.qa-header {
+  padding: var(--space-5);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.qa-item-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
   overflow: hidden;
-  transition: all 0.3s;
+  transition: border-color var(--transition-fast);
 }
 
-.qa-card.open {
-  border-color: var(--purple-light);
+.qa-item-card:hover {
+  border-color: var(--border-strong);
 }
 
-.qa-question {
-  transition: background 0.3s;
-}
-
-.qa-question:hover {
-  background: rgba(255, 255, 255, 0.05);
+.qa-question-bar {
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
 }
 
 .qa-question-text {
-  color: var(--text-main);
+  font-size: 0.945rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
-.qa-answer {
-  background: rgba(0, 0, 0, 0.2);
+.qa-answer-body {
+  padding: 0 var(--space-4) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: var(--space-3);
 }
 
 .qa-answer-text {
-  color: var(--text-main);
+  font-size: 0.865rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
 }
 
-.tips-badge {
-  border-left: 4px solid var(--cyan);
+.qa-tips-box {
+  margin-top: var(--space-3);
+  padding: 0.5rem 0.75rem;
+  background-color: var(--warning-subtle);
+  border: 1px solid var(--warning-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.795rem;
+  color: var(--warning);
 }
-
-.practice-area textarea {
-  min-height: 150px;
-}
-
-.font-bold { font-weight: 700; }
-.text-lg { font-size: 1.125rem; }
-.text-sm { font-size: 0.875rem; }
-.text-xs { font-size: 0.75rem; }
-.border-t { border-top-width: 1px; }
-.border-glass { border-color: var(--border-glass); }
-.bg-card { background-color: rgba(255, 255, 255, 0.02); }
