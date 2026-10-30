@@ -23,8 +23,17 @@ connectDB();
 
 // Middleware
 app.use(helmet());
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:4173'];
+if (process.env.FRONTEND_URL) {
+  process.env.FRONTEND_URL.split(',').forEach(u => { const t = u.trim(); if (t && !allowedOrigins.includes(t)) allowedOrigins.push(t); });
+}
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.netlify.app') || origin.endsWith('.firebaseapp.com')) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true,
 }));
 app.use(morgan('dev'));

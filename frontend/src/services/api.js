@@ -1,8 +1,12 @@
 import axios from 'axios';
 import { auth } from '../firebase';
 
+const rawBaseURL = import.meta.env.VITE_API_URL || '';
+const normalizedBaseURL = rawBaseURL.replace(/\/+$/, '');
+const baseURL = normalizedBaseURL ? `${normalizedBaseURL}/api` : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   timeout: 120000,
 });
 
