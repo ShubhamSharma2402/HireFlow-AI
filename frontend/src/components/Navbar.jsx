@@ -26,7 +26,7 @@ const Navbar = () => {
     setMobileMenuOpen(false);
   };
 
-  const displayName = mongoUser?.name || user?.displayName || user?.email?.split('@')[0] || 'User';
+  const displayName = (mongoUser?.name && mongoUser.name !== 'Dev User') ? mongoUser.name : (user?.displayName || user?.email?.split('@')[0] || 'User');
 
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>

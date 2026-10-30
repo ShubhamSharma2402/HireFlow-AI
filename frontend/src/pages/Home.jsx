@@ -20,7 +20,7 @@ const Home = () => {
   const [preAnalysis, setPreAnalysis] = useState(null);
 
   const [formData, setFormData] = useState({
-    name: mongoUser?.name || user?.displayName || '',
+    name: (mongoUser?.name && mongoUser.name !== 'Dev User') ? mongoUser.name : (user?.displayName || ''),
     jobDescription: '',
     resumeFile: null,
   });
@@ -98,7 +98,7 @@ const Home = () => {
 
     try {
       const data = new FormData();
-      data.append('userName', formData.name.trim() || mongoUser?.name || user?.displayName || 'Candidate');
+      data.append('userName', formData.name.trim() || ((mongoUser?.name && mongoUser.name !== 'Dev User') ? mongoUser.name : (user?.displayName || 'Candidate')));
       if (user?.uid || mongoUser?._id) {
         data.append('userId', mongoUser?._id || user?.uid);
       }

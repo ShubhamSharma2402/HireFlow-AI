@@ -7,29 +7,34 @@ const User = require('../models/User');
  */
 exports.syncUser = async (req, res, next) => {
   try {
-    const { uid, email, name } = req.firebaseUser;
+    const { uid, email, name: tokenName } = req.firebaseUser || {};
+    const rawBodyName = req.body?.name;
+    const resolvedName = (rawBodyName && rawBodyName !== 'Dev User')
+      ? rawBodyName
+      : (tokenName && tokenName !== 'Dev User' ? tokenName : (email ? email.split('@')[0] : 'User'));
 
     // Try to find by firebase_uid first
-    let user = await User.findOne({ firebase_uid: uid });
+    let user = uid ? await User.findOne({ firebase_uid: uid }) : null;
 
-    if (!user) {
+    if (!user && email) {
       // Check if user exists by email (email-first migration path)
       user = await User.findOne({ email });
-      if (user) {
-        // Existing user — attach firebase_uid
-        user.firebase_uid = uid;
-        if (!user.name || user.name.startsWith('Guest')) {
-          user.name = name || user.name;
-        }
-        await user.save();
-      } else {
-        // New user — create
-        user = await User.create({
-          firebase_uid: uid,
-          email,
-          name: name || email.split('@')[0],
-        });
+    }
+
+    if (user) {
+      // Existing user — attach firebase_uid and heal any previous "Dev User" or placeholder name
+      if (uid) user.firebase_uid = uid;
+      if (resolvedName && (user.name === 'Dev User' || user.name.startsWith('Guest') || !user.name)) {
+        user.name = resolvedName;
       }
+      await user.save();
+    } else {
+      // New user — create
+      user = await User.create({
+        firebase_uid: uid,
+        email: email || `${uid || Date.now()}@hireflow.ai`,
+        name: resolvedName,
+      });
     }
 
     res.status(200).json({
@@ -50,16 +55,27 @@ exports.syncUser = async (req, res, next) => {
 
 /**
  * GET /api/auth/me
- * Get current user profile from MongoDB
+ * Returns current authenticated user doc from MongoDB.
  */
 exports.getMe = async (req, res, next) => {
   try {
-    const { uid } = req.firebaseUser;
-    const user = await User.findOne({ firebase_uid: uid }).select('-password');
+    const { uid, email } = req.firebaseUser;
+
+    const user = await User.findOne({
+      $or: [{ firebase_uid: uid }, { email }],
+    });
+
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'User not found in database',
+      });
     }
-    res.status(200).json({ success: true, data: user });
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
   } catch (error) {
     next(error);
   }
