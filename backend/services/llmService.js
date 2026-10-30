@@ -50,7 +50,7 @@ function getGeminiKeys() {
 async function fetchGemini(apiKey, keyLabel, prompt, systemPrompt, options = {}) {
   if (!apiKey) throw new Error(`Missing API key for ${keyLabel}`);
 
-  const models = ['gemini-2.5-flash', 'gemini-flash-latest'];
+  const models = ['gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
   let lastErr = null;
 
   for (const model of models) {
